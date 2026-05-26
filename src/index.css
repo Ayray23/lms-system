@@ -836,3 +836,51 @@ p {
     align-items: flex-start;
   }
 }
+
+@media (min-width: 1024px) {
+  .hero-panel {
+    grid-template-columns: 1.45fr 1fr;
+    align-items: center;
+    gap: 36px;
+  }
+
+  .hero-actions {
+    display: none;
+  }
+
+  .landing-auth-shell {
+    display: block;
+  }
+
+  .hero-copy {
+    max-width: 40rem;
+  }
+
+  .hero-text {
+    max-width: 34rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-panel {
+    grid-template-columns: 1.45fr 1fr;
+    align-items: center;
+    gap: 36px;
+  }
+
+  .hero-actions {
+    display: none;
+  }
+
+  .landing-auth-shell {
+    display: block;
+  }
+
+  .hero-copy {
+    max-width: 40rem;
+  }
+
+  .hero-text {
+    max-width: 34rem;
+  }
+}
