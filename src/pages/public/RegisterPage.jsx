@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { roleLandingPath } from '../../utils/mockData'
@@ -12,18 +12,23 @@ const initialState = {
   department: 'Software Engineering',
 }
 
+const departments = ['Software Engineering', 'Computer Science', 'Information Systems', 'IT Management']
+const roles = ['student', 'lecturer', 'admin']
+
 export function RegisterPage() {
   const [form, setForm] = useState(initialState)
   const [step, setStep] = useState(1)
   const [agree, setAgree] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const { register } = useAuth()
   const navigate = useNavigate()
 
   const handleChange = (event) => {
-    const { name, value } = event.target
-    setForm((prev) => ({ ...prev, [name]: value }))
+    const { name, value, type, checked } = event.target
+    const fieldValue = type === 'checkbox' ? checked : value
+    setForm((prev) => ({ ...prev, [name]: fieldValue }))
   }
 
   const handleContinue = (event) => {
@@ -60,39 +65,33 @@ export function RegisterPage() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="grid min-h-screen grid-cols-1 gap-10 lg:grid-cols-[1.02fr_0.98fr]">
+      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1.02fr_0.98fr]">
         <section className="relative overflow-hidden border-r border-white/10 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-8 py-10 text-slate-100 sm:px-12 lg:px-16">
-          <div className="absolute -left-16 top-24 h-36 w-36 rounded-full bg-purple-500/15 blur-3xl" />
-          <div className="absolute right-8 top-28 h-40 w-40 rounded-full bg-cyan-500/10 blur-3xl" />
-          <div className="relative z-10 mx-auto max-w-xl space-y-8">
-            <div className="inline-flex items-center gap-3 rounded-full border border-cyan-400/15 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-200">
-              <span className="h-2.5 w-2.5 rounded-full bg-cyan-300 shadow-[0_0_20px_rgba(56,189,248,0.4)]" />
-              Multi-step sign-up with AI-ready onboarding
+          <div className="absolute -left-16 top-16 h-36 w-36 rounded-full bg-purple-500/15 blur-3xl" />
+          <div className="absolute right-8 top-24 h-40 w-40 rounded-full bg-cyan-500/10 blur-3xl" />
+          <div className="relative z-10 mx-auto flex max-w-xl flex-col justify-between gap-10">
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-3 rounded-full border border-cyan-400/15 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-200">
+                <span className="h-2.5 w-2.5 rounded-full bg-cyan-300 shadow-[0_0_20px_rgba(56,189,248,0.4)]" />
+                Multi-step sign-up with AI-ready onboarding
+              </div>
+              <div className="space-y-4">
+                <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+                  Create your SE-LMS account today.
+                </h1>
+                <p className="max-w-xl text-lg leading-8 text-slate-300">
+                  Join a premium learning platform built for software engineering students, lecturers, and platform admins.
+                </p>
+              </div>
             </div>
-            <div className="space-y-4">
-              <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-                Join SE-LMS and unlock your coding superpowers.
-              </h1>
-              <p className="max-w-xl text-lg leading-8 text-slate-300">
-                Create a premium student, lecturer, or admin account and step into a collaborative learning platform built for modern engineers.
-              </p>
-            </div>
-            <div className="rounded-[32px] border border-white/10 bg-slate-900/80 p-6 shadow-[0_20px_60px_rgba(15,23,42,0.25)] backdrop-blur-xl">
-              <p className="text-sm uppercase tracking-[0.3em] text-cyan-300/80">How it works</p>
-              <ol className="mt-5 space-y-4 text-slate-300">
-                <li className="flex items-start gap-3">
-                  <span className="mt-1 h-8 w-8 rounded-2xl bg-cyan-500/10 text-cyan-200 grid place-items-center font-semibold">1</span>
-                  Fill your profile details
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-1 h-8 w-8 rounded-2xl bg-cyan-500/10 text-cyan-200 grid place-items-center font-semibold">2</span>
-                  Choose your role and learning path
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="mt-1 h-8 w-8 rounded-2xl bg-cyan-500/10 text-cyan-200 grid place-items-center font-semibold">3</span>
-                  Enter the portal with instant course recommendations
-                </li>
-              </ol>
+
+            <div className="rounded-[32px] border border-white/10 bg-slate-900/80 p-6 text-slate-300 shadow-[0_30px_80px_rgba(15,23,42,0.2)] backdrop-blur-xl">
+              <p className="text-sm uppercase tracking-[0.24em] text-cyan-300/80">Why register?</p>
+              <ul className="mt-5 space-y-3 text-sm leading-7">
+                <li>Personalized learning pathways for every role.</li>
+                <li>Instant access to live coding rooms and collaborative labs.</li>
+                <li>Dashboard insights for performance, assignments, and progress.</li>
+              </ul>
             </div>
           </div>
         </section>
@@ -103,9 +102,9 @@ export function RegisterPage() {
               <div className="rounded-3xl bg-slate-950/80 px-4 py-3 text-xs uppercase tracking-[0.3em] text-slate-300">
                 Step {step} of 2
               </div>
-              <h2 className="text-3xl font-semibold text-white">Create your account</h2>
+              <h2 className="text-3xl font-semibold text-white">Register your account</h2>
               <p className="text-sm leading-6 text-slate-400">
-                Register quickly and join the future of software engineering education.
+                Complete the quick onboarding flow and join your premium SE-LMS workspace.
               </p>
             </div>
 
@@ -138,38 +137,6 @@ export function RegisterPage() {
                     />
                   </div>
 
-                  <button className="w-full rounded-3xl bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-500 px-5 py-3 text-base font-semibold text-slate-950 shadow-[0_18px_40px_rgba(56,189,248,0.24)] transition hover:-translate-y-0.5">
-                    Continue to Security
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-slate-200">Password</label>
-                    <input
-                      type="password"
-                      name="password"
-                      value={form.password}
-                      onChange={handleChange}
-                      placeholder="Create a password"
-                      required
-                      className="w-full rounded-3xl border border-white/10 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-slate-200">Confirm password</label>
-                    <input
-                      type="password"
-                      name="confirmPassword"
-                      value={form.confirmPassword}
-                      onChange={handleChange}
-                      placeholder="Repeat password"
-                      required
-                      className="w-full rounded-3xl border border-white/10 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                    />
-                  </div>
-
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-slate-200">Role</label>
@@ -179,75 +146,95 @@ export function RegisterPage() {
                         onChange={handleChange}
                         className="w-full rounded-3xl border border-white/10 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
                       >
-                        <option value="student">Student</option>
-                        <option value="lecturer">Lecturer</option>
-                        <option value="admin">Admin</option>
+                        {roles.map((roleOption) => (
+                          <option key={roleOption} value={roleOption} className="bg-slate-950 text-slate-100">
+                            {roleOption}
+                          </option>
+                        ))}
                       </select>
                     </div>
-
                     <div className="space-y-2">
                       <label className="block text-sm font-medium text-slate-200">Department</label>
-                      <input
-                        type="text"
+                      <select
                         name="department"
                         value={form.department}
                         onChange={handleChange}
-                        placeholder="Software Engineering"
-                        required
                         className="w-full rounded-3xl border border-white/10 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
-                      />
+                      >
+                        {departments.map((dept) => (
+                          <option key={dept} value={dept} className="bg-slate-950 text-slate-100">
+                            {dept}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-slate-200">Password</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        value={form.password}
+                        onChange={handleChange}
+                        placeholder="••••••••"
+                        required
+                        className="w-full rounded-3xl border border-white/10 bg-slate-950/80 px-4 py-3 pr-28 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-white/10 bg-slate-950/70 px-3 py-1 text-xs uppercase tracking-[0.24em] text-slate-300 transition hover:bg-slate-900"
+                      >
+                        {showPassword ? 'Hide' : 'Show'}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-slate-200">Confirm password</label>
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      value={form.confirmPassword}
+                      onChange={handleChange}
+                      placeholder="••••••••"
+                      required
+                      className="w-full rounded-3xl border border-white/10 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"
+                    />
+                  </div>
 
-                  <div className="flex items-center gap-3 text-sm text-slate-300">
+                  <label className="inline-flex items-center gap-3 text-sm text-slate-300">
                     <input
                       type="checkbox"
                       checked={agree}
-                      onChange={() => setAgree(!agree)}
-                      className="h-4 w-4 rounded border-white/10 bg-slate-950 text-cyan-400 focus:ring-cyan-400"
+                      onChange={(event) => setAgree(event.target.checked)}
+                      className="h-4 w-4 rounded border-white/10 bg-slate-900 text-cyan-400 focus:ring-cyan-400"
                     />
-                    <span>I agree to the terms and privacy policy.</span>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full rounded-3xl bg-gradient-to-r from-cyan-400 via-blue-500 to-violet-500 px-5 py-3 text-base font-semibold text-slate-950 shadow-[0_18px_40px_rgba(56,189,248,0.24)] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-70"
-                  >
-                    {submitting ? 'Creating account...' : 'Create account'}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    className="w-full rounded-3xl border border-white/10 bg-slate-950/80 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-cyan-300/30"
-                  >
-                    Back to details
-                  </button>
+                    I agree to the terms and privacy policy.
+                  </label>
                 </>
               )}
+
+              {error && <p className="text-sm text-rose-400">{error}</p>}
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full rounded-3xl bg-cyan-400 px-4 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {step === 1 ? 'Continue' : submitting ? 'Creating account...' : 'Create account'}
+              </button>
             </form>
 
-            {error && <p className="mt-4 text-sm text-red-300">{error}</p>}
-
-            <div className="mt-8 text-center text-sm text-slate-400">
-              <p>Or sign up with</p>
-              <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                <button className="flex-1 rounded-3xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-slate-100 transition hover:border-cyan-300/30">
-                  Google
-                </button>
-                <button className="flex-1 rounded-3xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-slate-100 transition hover:border-cyan-300/30">
-                  GitHub
-                </button>
-              </div>
-            </div>
-
-            <p className="mt-8 text-center text-sm text-slate-400">
-              Already signed up?{' '}
-              <Link to="/login" className="text-cyan-300 transition hover:text-cyan-100">
-                Login
+            <div className="mt-6 rounded-3xl border border-white/10 bg-slate-950/80 p-5 text-center text-sm text-slate-400 shadow-[0_20px_60px_rgba(15,23,42,0.2)]">
+              Already have an account?{' '}
+              <Link className="font-medium text-cyan-300 transition hover:text-cyan-100" to="/login">
+                Sign in
               </Link>
-            </p>
+            </div>
           </div>
         </section>
       </div>
