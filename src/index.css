@@ -418,6 +418,7 @@ p {
 
 .stat-card h3 {
   font-size: 2rem;
+  margin: 0;
 }
 
 .section-card {
@@ -426,6 +427,12 @@ p {
   padding: 28px;
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.03);
+}
+
+.section-card-body {
+  padding-top: 8px;
+  display: grid;
+  gap: 12px;
 }
 
 .section-heading {
