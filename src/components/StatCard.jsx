@@ -1,8 +1,8 @@
-export function StatCard({ label, value, meta }) {
+export function StatCard({ label, value, meta, className = '' }) {
   return (
-    <article className="stat-card">
+    <article className={`stat-card ${className}`.trim()}>
       <p className="stat-label">{label}</p>
-      <h3>{value}</h3>
+      <h3 className="stat-value">{value}</h3>
       <p className="stat-meta">{meta}</p>
     </article>
   )

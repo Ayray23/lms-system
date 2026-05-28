@@ -1,7 +1,7 @@
-export function SectionCard({ title, description, action, children }) {
+export function SectionCard({ title, description, action, children, className = '' }) {
   return (
     <section className={`section-card ${className}`.trim()}>
-      <div className="section-heading p-10">
+      <div className="section-heading">
         <div>
           <h2>{title}</h2>
           {description && <p>{description}</p>}
@@ -12,4 +12,3 @@ export function SectionCard({ title, description, action, children }) {
     </section>
   )
 }
-export function SectionCard({ title, description, action, children, className = '' }) {
