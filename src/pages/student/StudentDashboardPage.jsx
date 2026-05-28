@@ -4,7 +4,7 @@ import { announcements, assignments, dashboardStats, studentCourses } from '../.
 
 export function StudentDashboardPage() {
   return (
-    <div className="page-stack">
+    <div className="page-stack p-6">
       <section className="page-hero">
         <div>
           <p className="eyebrow">Student Dashboard</p>

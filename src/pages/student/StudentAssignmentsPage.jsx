@@ -11,7 +11,7 @@ const columns = [
 
 export function StudentAssignmentsPage() {
   return (
-    <div className="page-stack">
+    <div className="page-stack ">
       <SectionCard
         title="Assignments"
         description="Document tasks, coding submissions, and grading updates."

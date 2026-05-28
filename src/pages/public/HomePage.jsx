@@ -290,8 +290,8 @@ export function HomePage() {
               <p className="text-xl font-semibold text-white">SE-LMS</p>
               <p className="text-slate-400">A next-generation learning platform for software engineering students, built with premium UI and collaborative workflows in mind.</p>
             </div>
-            <div className="space-y-3 text-sm text-slate-300">
-              <p className="font-semibold text-white">Quick Links</p>
+            <div className="space-y-3 space-x-3 text-sm text-slate-300">
+              <p className="font-semibold text-white px-2">Quick Links</p>
               <Link to="#home" className="transition hover:text-cyan-200">Home</Link>
               <Link to="#features" className="transition hover:text-cyan-200">Features</Link>
               <Link to="#coding" className="transition hover:text-cyan-200">Coding Space</Link>
