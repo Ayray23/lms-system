@@ -20,7 +20,7 @@ export function AdminDashboardPage() {
 
       <section className="two-column-grid">
         <SectionCard title="Platform Activity" description="Recent operational signals">
-          <div className="stack-list">
+          <div className="stack-list p-12">
             {announcements.map((item) => (
               <article key={item.title} className="feed-item">
                 <div>

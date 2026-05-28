@@ -1,7 +1,7 @@
 export function SectionCard({ title, description, action, children }) {
   return (
     <section className="section-card">
-      <div className="section-heading">
+      <div className="section-heading p-10">
         <div>
           <h2>{title}</h2>
           {description && <p>{description}</p>}

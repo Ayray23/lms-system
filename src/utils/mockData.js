@@ -176,7 +176,7 @@ export const codingProblems = [
 
 export const usersTable = [
   {
-    name: 'Ada Student',
+    name: 'Ray Student',
     role: 'Student',
     department: 'Software Engineering',
     status: 'Active',

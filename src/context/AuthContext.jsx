@@ -16,7 +16,7 @@ const STORAGE_KEY = 'se-lms-profile'
 const defaultProfiles = {
   student: {
     uid: 'demo-student',
-    name: 'Ada Student',
+    name: 'Ray Student',
     email: 'student@selms.dev',
     role: 'student',
     department: 'Software Engineering',

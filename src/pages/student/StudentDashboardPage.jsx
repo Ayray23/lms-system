@@ -6,7 +6,7 @@ export function StudentDashboardPage() {
   return (
     <div className="page-stack p-6">
       <section className="page-hero">
-        <div>
+        <div className='p-4'>
           <p className="eyebrow">Student Dashboard</p>
           <h2>Track coursework, deadlines, and coding practice from one place.</h2>
         </div>
