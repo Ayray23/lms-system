@@ -8,6 +8,7 @@ import { RegisterPage } from '../pages/public/RegisterPage'
 import { ForgotPasswordPage } from '../pages/public/ForgotPasswordPage'
 import { StudentDashboardPage } from '../pages/student/StudentDashboardPage'
 import { StudentCoursesPage } from '../pages/student/StudentCoursesPage'
+import { CourseDetailPage } from '../pages/student/CourseDetailPage'
 import { StudentAssignmentsPage } from '../pages/student/StudentAssignmentsPage'
 import { CodeSpacePage } from '../pages/student/CodeSpacePage'
 import { LecturerDashboardPage } from '../pages/lecturer/LecturerDashboardPage'
@@ -47,6 +48,7 @@ export function AppRoutes() {
           <Route element={<ProtectedRoute allowedRoles={['student']} />}>
             <Route path="student" element={<StudentDashboardPage />} />
             <Route path="student/courses" element={<StudentCoursesPage />} />
+            <Route path="student/courses/:courseCode" element={<CourseDetailPage />} />
             <Route path="student/assignments" element={<StudentAssignmentsPage />} />
             <Route path="student/codespace" element={<CodeSpacePage />} />
           </Route>

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Modal } from '../../components/Modal'
 import { SectionCard } from '../../components/SectionCard'
 import { studentCourses } from '../../utils/mockData'
@@ -9,6 +10,7 @@ export function StudentCoursesPage() {
   const [levelFilter, setLevelFilter] = useState('all')
   const [selectedCourse, setSelectedCourse] = useState(studentCourses[0])
   const [enrolledCourses, setEnrolledCourses] = useState([])
+  const navigate = useNavigate()
   const [showCourseModal, setShowCourseModal] = useState(false)
   const [showOutlineModal, setShowOutlineModal] = useState(false)
   const [enrollMessage, setEnrollMessage] = useState('')
@@ -167,6 +169,13 @@ export function StudentCoursesPage() {
                     onClick={() => openOutlineModal(course)}
                   >
                     View outline
+                  </button>
+                  <button
+                    className="ghost-button small"
+                    type="button"
+                    onClick={() => navigate(`/app/student/courses/${encodeURIComponent(course.code)}`)}
+                  >
+                    View details
                   </button>
                   <button
                     className="primary-button small"
