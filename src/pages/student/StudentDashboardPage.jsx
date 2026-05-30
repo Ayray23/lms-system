@@ -1,8 +1,11 @@
+import { useNavigate } from 'react-router-dom'
 import { SectionCard } from '../../components/SectionCard'
 import { StatCard } from '../../components/StatCard'
 import { announcements, assignments, dashboardStats, studentCourses } from '../../utils/mockData'
 
 export function StudentDashboardPage() {
+  const navigate = useNavigate()
+
   return (
     <div className="page-stack p-6">
       <section className="page-hero">
@@ -19,7 +22,15 @@ export function StudentDashboardPage() {
       </section>
 
       <section className="two-column-grid">
-        <SectionCard title="My Courses" description="Your current semester enrollment">
+        <SectionCard
+          title="My Courses"
+          description="Your current semester enrollment"
+          action={
+            <button className="ghost-button small" type="button" onClick={() => navigate('/app/student/courses')}>
+              View courses
+            </button>
+          }
+        >
           <div className="list-grid">
             {studentCourses.map((course) => (
               <article key={course.code} className="list-item-card">
@@ -46,7 +57,15 @@ export function StudentDashboardPage() {
         </SectionCard>
       </section>
 
-      <SectionCard title="Assignments Overview" description="Stay ahead of pending work">
+      <SectionCard
+        title="Assignments Overview"
+        description="Stay ahead of pending work"
+        action={
+          <button className="ghost-button small" type="button" onClick={() => navigate('/app/student/assignments')}>
+            Review assignments
+          </button>
+        }
+      >
         <div className="stack-list">
           {assignments.map((item) => (
             <article key={item.title} className="feed-item">

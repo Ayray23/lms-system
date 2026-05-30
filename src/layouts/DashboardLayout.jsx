@@ -140,15 +140,27 @@ export function DashboardLayout() {
                     <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">Live</span>
                   </div>
                   <div className="mt-5 space-y-3">
-                    <button className="w-full rounded-2xl bg-slate-950/80 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-slate-800">
-                      Review recent submissions
-                    </button>
-                    <button className="w-full rounded-2xl bg-slate-950/80 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-slate-800">
-                      Open latest course material
-                    </button>
-                    <button className="w-full rounded-2xl bg-slate-950/80 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-slate-800">
-                      Update your profile
-                    </button>
+                    <button
+                    className="w-full rounded-2xl bg-slate-950/80 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-slate-800"
+                    type="button"
+                    onClick={() => navigate('/app/student/assignments')}
+                  >
+                    Review recent submissions
+                  </button>
+                  <button
+                    className="w-full rounded-2xl bg-slate-950/80 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-slate-800"
+                    type="button"
+                    onClick={() => navigate('/app/student/courses')}
+                  >
+                    Open latest course material
+                  </button>
+                  <button
+                    className="w-full rounded-2xl bg-slate-950/80 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-slate-800"
+                    type="button"
+                    onClick={() => navigate('/app/profile')}
+                  >
+                    Update your profile
+                  </button>
                   </div>
                 </div>
 
