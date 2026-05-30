@@ -132,10 +132,8 @@ export function CourseDetailPage() {
           </div>
         )}
       </SectionCard>
-    </div>
-  )
-}
 
+      <div className="two-column-grid">
         <SectionCard title="Course metrics" description="Progress indicators and assignments for this course">
           <div className="stack-list">
             <article className="feed-item">
@@ -161,27 +159,27 @@ export function CourseDetailPage() {
             </article>
           </div>
         </SectionCard>
-      </div>
 
-      <SectionCard title="Related assignments" description="Assignments tied to this course">
-        {courseAssignments.length ? (
-          <div className="stack-list">
-            {courseAssignments.map((assignment) => (
-              <article key={assignment.title} className="feed-item">
-                <div>
-                  <strong>{assignment.title}</strong>
-                  <p>{assignment.status}</p>
-                </div>
-                <span>{assignment.deadline}</span>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <div className="rounded-3xl bg-slate-950/80 p-6 text-slate-400">
-            No assignments are currently attached to this course in the demo data.
-          </div>
-        )}
-      </SectionCard>
+        <SectionCard title="Related assignments" description="Assignments tied to this course">
+          {courseAssignments.length ? (
+            <div className="stack-list">
+              {courseAssignments.map((assignment) => (
+                <article key={assignment.title} className="feed-item">
+                  <div>
+                    <strong>{assignment.title}</strong>
+                    <p>{assignment.status}</p>
+                  </div>
+                  <span>{assignment.deadline}</span>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-3xl bg-slate-950/80 p-6 text-slate-400">
+              No assignments are currently attached to this course in the demo data.
+            </div>
+          )}
+        </SectionCard>
+      </div>
     </div>
   )
 }
