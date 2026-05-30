@@ -733,13 +733,67 @@ p {
   font-family: 'Consolas', 'Courier New', monospace;
   white-space: pre-wrap;
   color: #b9dbff;
-}
+  }
 
-.profile-chip {
-  display: grid;
-  gap: 2px;
-  text-align: right;
-}
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    background: rgba(4, 8, 18, 0.75);
+    padding: 24px;
+  }
+
+  .modal-card {
+    width: min(640px, 100%);
+    max-height: min(90vh, 100%);
+    overflow-y: auto;
+    border-radius: 28px;
+    background: rgba(10, 18, 32, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 32px 80px rgba(0, 0, 0, 0.35);
+    padding: 28px;
+    display: grid;
+    gap: 20px;
+  }
+
+  .modal-header,
+  .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .modal-header h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--heading);
+  }
+
+  .modal-body {
+    display: grid;
+    gap: 16px;
+  }
+
+  .modal-footer {
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .code-editor {
+    width: 100%;
+    min-height: 260px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(7, 14, 24, 0.95);
+    color: #d9e5f2;
+    font-family: 'Consolas', 'Courier New', monospace;
+    padding: 18px;
+    resize: vertical;
+    outline: none;
+  }
 
 .auth-links {
   margin-top: 22px;
