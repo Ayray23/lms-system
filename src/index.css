@@ -158,6 +158,15 @@ p {
   gap: 16px;
 }
 
+.lecturer-ops-grid,
+.lecturer-course-grid,
+.lecturer-action-grid,
+.lecturer-checklist,
+.lecturer-timeline {
+  display: grid;
+  gap: 16px;
+}
+
 .hero-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: center;
@@ -537,6 +546,127 @@ p {
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
+.lecturer-ops-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.lecturer-course-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.lecturer-course-card,
+.lecturer-action-card,
+.discussion-card,
+.lecturer-reply-preview {
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(circle at top right, rgba(112, 213, 164, 0.08), transparent 28%),
+    rgba(255, 255, 255, 0.03);
+  border-radius: 26px;
+  padding: 22px;
+}
+
+.lecturer-course-card {
+  display: grid;
+  gap: 18px;
+  align-content: space-between;
+}
+
+.lecturer-course-card h3,
+.discussion-card h3 {
+  color: var(--heading);
+  margin-top: 12px;
+}
+
+.lecturer-course-card p,
+.discussion-card p,
+.lecturer-reply-preview span {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.lecturer-metric-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.lecturer-metric-row span,
+.lecturer-checklist span,
+.lecturer-timeline span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--heading);
+  padding: 10px 12px;
+  font-size: 0.9rem;
+}
+
+.lecturer-action-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lecturer-action-card {
+  color: var(--heading);
+  text-align: left;
+  min-height: 92px;
+  font-weight: 700;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.lecturer-action-card:hover {
+  border-color: rgba(112, 213, 164, 0.32);
+  transform: translateY(-2px);
+}
+
+.lecturer-checklist {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.lecturer-timeline {
+  counter-reset: grading-step;
+}
+
+.lecturer-timeline span {
+  position: relative;
+  border-radius: 18px;
+  padding-left: 48px;
+}
+
+.lecturer-timeline span::before {
+  counter-increment: grading-step;
+  content: counter(grading-step);
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--accent);
+  color: white;
+  transform: translateY(-50%);
+}
+
+.discussion-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+}
+
+.lecturer-reply-preview {
+  display: grid;
+  gap: 10px;
+}
+
+.lecturer-reply-preview p {
+  color: var(--heading);
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
 .catalogue-card h3 {
   font-size: 1.28rem;
 }
@@ -835,7 +965,8 @@ p {
   .catalogue-hero,
   .two-column-grid,
   .codespace-layout,
-  .stats-grid {
+  .stats-grid,
+  .lecturer-ops-grid {
     grid-template-columns: 1fr;
   }
 
@@ -882,9 +1013,14 @@ p {
   .catalogue-pills,
   .catalogue-card-footer,
   .featured-course-top,
-  .featured-course-meta {
+  .featured-course-meta,
+  .discussion-card {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .lecturer-action-grid {
+    grid-template-columns: 1fr;
   }
 
   .feed-item {

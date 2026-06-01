@@ -127,66 +127,70 @@ export function StudentCoursesPage() {
           </div>
 
           <div className="catalogue-grid">
-            {filteredCourses.map((course) => (
-              <article key={course.code} className="catalogue-card">
-                <div className="catalogue-card-head">
-                  <span className="course-badge">{course.code}</span>
-                  <span className={`catalogue-status status-${course.status.toLowerCase()}`}>
-                    {course.status}
-                  </span>
-                </div>
-                <h3>{course.title}</h3>
-                <p className="catalogue-summary">{course.summary}</p>
+            {filteredCourses.map((course) => {
+              const isEnrolled = enrolledCourses.includes(course.code)
 
-                <div className="catalogue-metrics">
-                  <article>
-                    <span>Lecturer</span>
-                    <strong>{course.lecturer}</strong>
-                  </article>
-                  <article>
-                    <span>Format</span>
-                    <strong>{course.format}</strong>
-                  </article>
-                  <article>
-                    <span>Lessons</span>
-                    <strong>{course.lessons}</strong>
-                  </article>
-                  <article>
-                    <span>Credits</span>
-                    <strong>{course.credits}</strong>
-                  </article>
-                </div>
+              return (
+                <article key={course.code} className="catalogue-card">
+                  <div className="catalogue-card-head">
+                    <span className="course-badge">{course.code}</span>
+                    <span className={`catalogue-status status-${course.status.toLowerCase()}`}>
+                      {isEnrolled ? 'Enrolled' : course.status}
+                    </span>
+                  </div>
+                  <h3>{course.title}</h3>
+                  <p className="catalogue-summary">{course.summary}</p>
 
-                <div className="chip-row">
-                  <span>{course.department}</span>
-                  <span>{course.level}</span>
-                </div>
+                  <div className="catalogue-metrics">
+                    <article>
+                      <span>Lecturer</span>
+                      <strong>{course.lecturer}</strong>
+                    </article>
+                    <article>
+                      <span>Format</span>
+                      <strong>{course.format}</strong>
+                    </article>
+                    <article>
+                      <span>Lessons</span>
+                      <strong>{course.lessons}</strong>
+                    </article>
+                    <article>
+                      <span>Credits</span>
+                      <strong>{course.credits}</strong>
+                    </article>
+                  </div>
 
-                <div className="catalogue-card-footer">
-                  <button
-                    className="ghost-button small"
-                    type="button"
-                    onClick={() => openOutlineModal(course)}
-                  >
-                    View outline
-                  </button>
-                  <button
-                    className="ghost-button small"
-                    type="button"
-                    onClick={() => navigate(`/app/student/courses/${encodeURIComponent(course.code)}`)}
-                  >
-                    View details
-                  </button>
-                  <button
-                    className="primary-button small"
-                    type="button"
-                    onClick={() => openCourseModal(course)}
-                  >
-                    Enroll now
-                  </button>
-                </div>
-              </article>
-            ))}
+                  <div className="chip-row">
+                    <span>{course.department}</span>
+                    <span>{course.level}</span>
+                  </div>
+
+                  <div className="catalogue-card-footer">
+                    <button
+                      className="ghost-button small"
+                      type="button"
+                      onClick={() => openOutlineModal(course)}
+                    >
+                      View outline
+                    </button>
+                    <button
+                      className="ghost-button small"
+                      type="button"
+                      onClick={() => navigate(`/app/student/courses/${encodeURIComponent(course.code)}`)}
+                    >
+                      View details
+                    </button>
+                    <button
+                      className="primary-button small"
+                      type="button"
+                      onClick={() => openCourseModal(course)}
+                    >
+                      {isEnrolled ? 'Enrolled' : 'Enroll now'}
+                    </button>
+                  </div>
+                </article>
+              )
+            })}
           </div>
         </div>
       </SectionCard>

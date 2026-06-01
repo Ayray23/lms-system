@@ -1,14 +1,31 @@
+import { useNavigate } from 'react-router-dom'
 import { SectionCard } from '../../components/SectionCard'
 import { StatCard } from '../../components/StatCard'
-import { assignments, courseManagementRows, dashboardStats } from '../../utils/mockData'
+import {
+  dashboardStats,
+  discussionThreads,
+  lecturerAssignments,
+  lecturerCodingChallenges,
+  lecturerCourses,
+  quizzes,
+  submissionQueue,
+} from '../../utils/mockData'
 
 export function LecturerDashboardPage() {
+  const navigate = useNavigate()
+  const priorityActions = [
+    { label: 'Upload course material', path: '/app/lecturer/courses' },
+    { label: 'Create assignment', path: '/app/lecturer/assignments' },
+    { label: 'Review gradebook', path: '/app/lecturer/gradebook' },
+    { label: 'Answer discussions', path: '/app/lecturer/discussions' },
+  ]
+
   return (
     <div className="page-stack">
       <section className="page-hero">
         <div>
           <p className="eyebrow">Lecturer Dashboard</p>
-          <h2>Manage courses, materials, grading, and coding exercises efficiently.</h2>
+          <h2>Manage course delivery, assessment, grading, and student support from one teaching command center.</h2>
         </div>
       </section>
 
@@ -19,29 +36,74 @@ export function LecturerDashboardPage() {
       </section>
 
       <section className="two-column-grid">
-        <SectionCard title="Course Analytics" description="Quick summary of active teaching load">
+        <SectionCard title="Assigned Courses" description="Teaching load, review pressure, and class schedule">
           <div className="stack-list">
-            {courseManagementRows.map((course) => (
-              <article key={course.course} className="feed-item">
+            {lecturerCourses.map((course) => (
+              <article key={course.code} className="feed-item align-start">
                 <div>
-                  <strong>{course.course}</strong>
-                  <p>{course.materials}</p>
+                  <strong>{course.code} - {course.title}</strong>
+                  <p>{course.students} students | {course.completion} course progress | {course.nextClass}</p>
                 </div>
-                <span>{course.students} students</span>
+                <span>{course.pendingReviews} reviews</span>
               </article>
             ))}
           </div>
         </SectionCard>
 
-        <SectionCard title="Submission Queue" description="Assignments waiting for grading">
+        <SectionCard title="Priority Actions" description="Fast access to the work lecturers repeat daily">
+          <div className="lecturer-action-grid">
+            {priorityActions.map((action) => (
+              <button
+                key={action.label}
+                type="button"
+                className="lecturer-action-card"
+                onClick={() => navigate(action.path)}
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
+        </SectionCard>
+      </section>
+
+      <section className="lecturer-ops-grid">
+        <SectionCard title="Assessment Pipeline" description="Assignments, quizzes, and coding challenges in motion">
           <div className="stack-list">
-            {assignments.map((assignment) => (
-              <article key={assignment.title} className="feed-item">
+            {[...lecturerAssignments.slice(0, 2), ...quizzes.slice(0, 1), ...lecturerCodingChallenges.slice(0, 1)].map((item) => (
+              <article key={`${item.title}-${item.course}`} className="feed-item align-start">
                 <div>
-                  <strong>{assignment.title}</strong>
-                  <p>{assignment.course}</p>
+                  <strong>{item.title}</strong>
+                  <p>{item.course}</p>
                 </div>
-                <span>{assignment.status}</span>
+                <span>{item.status || item.reviewStatus}</span>
+              </article>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Submission Queue" description="Students waiting for review or feedback">
+          <div className="stack-list">
+            {submissionQueue.map((submission) => (
+              <article key={`${submission.student}-${submission.item}`} className="feed-item align-start">
+                <div>
+                  <strong>{submission.student}</strong>
+                  <p>{submission.item} | {submission.course}</p>
+                </div>
+                <span>{submission.score}</span>
+              </article>
+            ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard title="Discussion Watch" description="Questions that need lecturer attention">
+          <div className="stack-list">
+            {discussionThreads.map((thread) => (
+              <article key={thread.title} className="feed-item align-start">
+                <div>
+                  <strong>{thread.title}</strong>
+                  <p>{thread.course} | {thread.student}</p>
+                </div>
+                <span>{thread.status}</span>
               </article>
             ))}
           </div>
