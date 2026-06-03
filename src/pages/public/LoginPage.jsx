@@ -108,8 +108,8 @@ export function LoginPage() {
             </div>
 
             {!isFirebaseConfigured && (
-              <div className="mb-5 rounded-3xl border border-cyan-400/10 bg-cyan-500/10 p-4 text-sm text-cyan-100">
-                Demo mode active. Pick a role to preview each dashboard instantly.
+              <div className="mb-5 rounded-3xl border border-rose-400/10 bg-rose-500/10 p-4 text-sm text-rose-100">
+                Firebase configuration is missing. Live auth is unavailable until environment variables are provided.
               </div>
             )}
 

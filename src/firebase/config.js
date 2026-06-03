@@ -1,3 +1,9 @@
+import { initializeApp } from 'firebase/app'
+import { getAuth } from 'firebase/auth'
+import { getFirestore } from 'firebase/firestore'
+import { getStorage } from 'firebase/storage'
+import { getAnalytics, isSupported } from 'firebase/analytics'
+
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -27,28 +33,21 @@ export async function getFirebaseServices() {
   }
 
   if (!servicesPromise) {
-    servicesPromise = Promise.all([
-      import('firebase/app'),
-      import('firebase/auth'),
-      import('firebase/firestore'),
-      import('firebase/storage'),
-      import('firebase/analytics'),
-    ]).then(async ([appModule, authModule, firestoreModule, storageModule, analyticsModule]) => {
-      const app = appModule.initializeApp(firebaseConfig)
+    servicesPromise = (async () => {
+      const app = initializeApp(firebaseConfig)
       const analytics =
-        firebaseConfig.measurementId && (await analyticsModule.isSupported())
-          ? analyticsModule.getAnalytics(app)
+        firebaseConfig.measurementId && (await isSupported())
+          ? getAnalytics(app)
           : null
 
       return {
         app,
         analytics,
-        auth: authModule.getAuth(app),
-        authModule,
-        db: firestoreModule.getFirestore(app),
-        storage: storageModule.getStorage(app),
+        auth: getAuth(app),
+        db: getFirestore(app),
+        storage: getStorage(app),
       }
-    })
+    })()
   }
 
   return servicesPromise

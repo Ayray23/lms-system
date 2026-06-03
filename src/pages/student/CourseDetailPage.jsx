@@ -175,7 +175,7 @@ export function CourseDetailPage() {
             </div>
           ) : (
             <div className="rounded-3xl bg-slate-950/80 p-6 text-slate-400">
-              No assignments are currently attached to this course in the demo data.
+              No assignments are currently attached to this course.
             </div>
           )}
         </SectionCard>

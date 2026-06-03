@@ -27,8 +27,8 @@ export function ProfilePage() {
         </div>
         <div className="info-banner spaced">
           {isFirebaseConfigured
-            ? 'Firebase is connected. Next step: persist profile records in Firestore.'
-            : 'Demo mode is active. Add Firebase environment variables to enable live auth.'}
+            ? 'Firebase is connected and live auth is active.'
+            : 'Firebase is not configured. Live auth is unavailable.'}
         </div>
       </SectionCard>
     </div>

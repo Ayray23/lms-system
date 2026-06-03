@@ -1,34 +1,18 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from 'react'
 import { getFirebaseServices, isFirebaseConfigured } from '../firebase/config'
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signOut,
+  updateProfile,
+  onAuthStateChanged,
+} from 'firebase/auth'
 
 const AuthContext = createContext(null)
 
 const STORAGE_KEY = 'se-lms-profile'
-const defaultProfiles = {
-  student: {
-    uid: 'demo-student',
-    name: 'Ray Student',
-    email: 'student@selms.dev',
-    role: 'student',
-    department: 'Software Engineering',
-  },
-  lecturer: {
-    uid: 'demo-lecturer',
-    name: 'Dr. Musa Lecturer',
-    email: 'lecturer@selms.dev',
-    role: 'lecturer',
-    department: 'Computer Science',
-  },
-  admin: {
-    uid: 'demo-admin',
-    name: 'Admin Officer',
-    email: 'admin@selms.dev',
-    role: 'admin',
-    department: 'ICT Unit',
-  },
-}
-
 function readStoredProfile() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
@@ -47,9 +31,7 @@ function clearStoredProfile() {
 }
 
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(() =>
-    !isFirebaseConfigured ? readStoredProfile() : null,
-  )
+  const [currentUser, setCurrentUser] = useState(null)
   const [loading, setLoading] = useState(isFirebaseConfigured)
   const [firebaseServices, setFirebaseServices] = useState(null)
 
@@ -66,7 +48,7 @@ export function AuthProvider({ children }) {
         if (!mounted || !services) return
 
         setFirebaseServices(services)
-        unsubscribe = services.authModule.onAuthStateChanged(services.auth, (user) => {
+        unsubscribe = onAuthStateChanged(services.auth, (user) => {
           if (!user) {
             setCurrentUser(null)
             clearStoredProfile()
@@ -104,10 +86,7 @@ export function AuthProvider({ children }) {
 
   const login = async ({ email, password, role = 'student' }) => {
     if (!isFirebaseConfigured) {
-      const profile = defaultProfiles[role] || defaultProfiles.student
-      writeStoredProfile(profile)
-      setCurrentUser(profile)
-      return profile
+      throw new Error('Firebase is not configured. Live login is unavailable.')
     }
 
     const services = firebaseServices || await getFirebaseServices()
@@ -115,7 +94,7 @@ export function AuthProvider({ children }) {
       setFirebaseServices(services)
     }
 
-    const credential = await services.authModule.signInWithEmailAndPassword(services.auth, email, password)
+    const credential = await signInWithEmailAndPassword(services.auth, email, password)
     const storedProfile = readStoredProfile()
     const profile = {
       uid: credential.user.uid,
@@ -146,9 +125,7 @@ export function AuthProvider({ children }) {
     }
 
     if (!isFirebaseConfigured) {
-      writeStoredProfile(profile)
-      setCurrentUser(profile)
-      return profile
+      throw new Error('Firebase is not configured. Live registration is unavailable.')
     }
 
     const services = firebaseServices || await getFirebaseServices()
@@ -156,8 +133,8 @@ export function AuthProvider({ children }) {
       setFirebaseServices(services)
     }
 
-    const credential = await services.authModule.createUserWithEmailAndPassword(services.auth, email, password)
-    await services.authModule.updateProfile(credential.user, { displayName: name })
+    const credential = await createUserWithEmailAndPassword(services.auth, email, password)
+    await updateProfile(credential.user, { displayName: name })
 
     const firebaseProfile = {
       ...profile,
@@ -174,7 +151,7 @@ export function AuthProvider({ children }) {
 
     if (isFirebaseConfigured) {
       const services = firebaseServices || await getFirebaseServices()
-      await services.authModule.signOut(services.auth)
+      await signOut(services.auth)
     }
 
     setCurrentUser(null)
@@ -182,7 +159,7 @@ export function AuthProvider({ children }) {
 
   const resetPassword = async (email) => {
     if (!isFirebaseConfigured) {
-      return 'Demo mode: connect Firebase to send live reset emails.'
+      throw new Error('Firebase is not configured. Password reset is unavailable.')
     }
 
     const services = firebaseServices || await getFirebaseServices()
@@ -190,7 +167,7 @@ export function AuthProvider({ children }) {
       setFirebaseServices(services)
     }
 
-    await services.authModule.sendPasswordResetEmail(services.auth, email)
+    await sendPasswordResetEmail(services.auth, email)
     return 'Password reset email sent successfully.'
   }
 

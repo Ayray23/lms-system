@@ -43,7 +43,7 @@ export function DashboardLayout() {
                 Centralized dashboard for your role, courses, and assignments.
               </p>
               <span className="mt-5 inline-flex rounded-full bg-slate-800 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-slate-300">
-                {isFirebaseConfigured ? 'Firebase connected' : 'Demo mode'}
+                {isFirebaseConfigured ? 'Firebase connected' : 'Offline mode'}
               </span>
             </div>
 
@@ -174,11 +174,11 @@ export function DashboardLayout() {
                 <div className="rounded-[32px] border border-slate-800 bg-slate-900/85 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
                   <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Status</p>
                   <div className="mt-4 rounded-3xl bg-slate-950/80 p-4 text-sm text-slate-300">
-                    <p className="font-medium text-white">{isFirebaseConfigured ? 'Real data enabled' : 'Demo preview active'}</p>
+                    <p className="font-medium text-white">{isFirebaseConfigured ? 'Live data enabled' : 'Live Firebase auth unavailable'}</p>
                     <p className="mt-2 text-sm text-slate-400">
                       {isFirebaseConfigured
                         ? 'Your workspace is connected to Firebase and live platform data is available.'
-                        : 'Demo mode is enabled so you can explore the dashboard without a connected backend.'}
+                        : 'Firebase is not configured. Provide Firebase environment variables to enable live auth.'}
                     </p>
                   </div>
                 </div>
