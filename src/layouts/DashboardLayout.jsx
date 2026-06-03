@@ -7,6 +7,24 @@ export function DashboardLayout() {
   const navigate = useNavigate()
   const navItems = roleNavigation[currentUser?.role] || []
   const stats = dashboardStats[currentUser?.role] || []
+  const quickActions = {
+    student: [
+      { label: 'Review assignments', path: '/app/student/assignments' },
+      { label: 'Open course catalogue', path: '/app/student/courses' },
+      { label: 'Launch CodeSpace', path: '/app/student/codespace' },
+    ],
+    lecturer: [
+      { label: 'Upload course material', path: '/app/lecturer/courses' },
+      { label: 'Create assignment', path: '/app/lecturer/assignments' },
+      { label: 'Review gradebook', path: '/app/lecturer/gradebook' },
+    ],
+    admin: [
+      { label: 'Add student record', path: '/app/admin/students' },
+      { label: 'Assign lecturer', path: '/app/admin/lecturers' },
+      { label: 'Open reports', path: '/app/admin/reports' },
+    ],
+  }
+  const activeQuickActions = quickActions[currentUser?.role] || quickActions.student
 
   const handleLogout = async () => {
     await logout()
@@ -15,8 +33,8 @@ export function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <div className="grid min-h-screen grid-cols-[280px_1fr]">
-        <aside className="sticky top-0 h-screen border-r border-slate-800 bg-slate-950/90 px-6 py-8 shadow-[0_0_60px_rgba(0,0,0,0.35)] backdrop-blur overflow-y-auto">
+      <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
+        <aside className="border-b border-slate-800 bg-slate-950/90 px-6 py-6 shadow-[0_0_60px_rgba(0,0,0,0.35)] backdrop-blur lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto lg:border-b-0 lg:border-r lg:py-8">
           <div className="space-y-4">
             <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-[0_24px_60px_rgba(0,0,0,0.2)]">
               <p className="text-xs uppercase tracking-[0.24em] text-slate-400">SE-LMS</p>
@@ -31,7 +49,7 @@ export function DashboardLayout() {
 
             <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-4">
               <p className="text-sm font-semibold text-slate-300">Navigation</p>
-              <nav className="mt-4 flex flex-col gap-2">
+              <nav className="mt-4 grid gap-2 sm:grid-cols-2 lg:flex lg:flex-col">
                 {navItems.map((item) => (
                   <NavLink
                     key={item.path}
@@ -59,7 +77,7 @@ export function DashboardLayout() {
         </aside>
 
         <div className="flex flex-col">
-          <header className="flex items-center justify-between border-b border-slate-800 bg-slate-950/80 px-6 py-5 backdrop-blur">
+          <header className="flex flex-col gap-5 border-b border-slate-800 bg-slate-950/80 px-6 py-5 backdrop-blur xl:flex-row xl:items-center xl:justify-between">
             <div>
               <p className="text-sm uppercase tracking-[0.28em] text-slate-500">Dashboard</p>
               <h2 className="mt-1 text-3xl font-semibold text-white">
@@ -89,7 +107,7 @@ export function DashboardLayout() {
             </div>
           </header>
 
-          <main className="flex-1 overflow-y-auto px-6 py-6">
+          <main className="flex-1 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6">
             <section className="mb-6 grid gap-6 xl:grid-cols-[1.5fr_0.8fr]">
               <article className="rounded-[32px] border border-slate-800 bg-slate-900/85 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
                 <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -140,27 +158,16 @@ export function DashboardLayout() {
                     <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">Live</span>
                   </div>
                   <div className="mt-5 space-y-3">
-                    <button
-                    className="w-full rounded-2xl bg-slate-950/80 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-slate-800"
-                    type="button"
-                    onClick={() => navigate('/app/student/assignments')}
-                  >
-                    Review recent submissions
-                  </button>
-                  <button
-                    className="w-full rounded-2xl bg-slate-950/80 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-slate-800"
-                    type="button"
-                    onClick={() => navigate('/app/student/courses')}
-                  >
-                    Open latest course material
-                  </button>
-                  <button
-                    className="w-full rounded-2xl bg-slate-950/80 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-slate-800"
-                    type="button"
-                    onClick={() => navigate('/app/profile')}
-                  >
-                    Update your profile
-                  </button>
+                    {activeQuickActions.map((action) => (
+                      <button
+                        key={action.path}
+                        className="w-full rounded-2xl bg-slate-950/80 px-4 py-3 text-left text-sm font-medium text-white transition hover:bg-slate-800"
+                        type="button"
+                        onClick={() => navigate(action.path)}
+                      >
+                        {action.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 

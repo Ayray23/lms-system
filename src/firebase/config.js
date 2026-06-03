@@ -1,8 +1,3 @@
-import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
-import { getStorage } from 'firebase/storage'
-
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -10,12 +5,51 @@ const firebaseConfig = {
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 }
 
-export const isFirebaseConfigured = Object.values(firebaseConfig).every(Boolean)
+const requiredConfig = {
+  apiKey: firebaseConfig.apiKey,
+  authDomain: firebaseConfig.authDomain,
+  projectId: firebaseConfig.projectId,
+  storageBucket: firebaseConfig.storageBucket,
+  messagingSenderId: firebaseConfig.messagingSenderId,
+  appId: firebaseConfig.appId,
+}
 
-const app = isFirebaseConfigured ? initializeApp(firebaseConfig) : null
+export const isFirebaseConfigured = Object.values(requiredConfig).every(Boolean)
 
-export const auth = app ? getAuth(app) : null
-export const db = app ? getFirestore(app) : null
-export const storage = app ? getStorage(app) : null
+let servicesPromise = null
+
+export async function getFirebaseServices() {
+  if (!isFirebaseConfigured) {
+    return null
+  }
+
+  if (!servicesPromise) {
+    servicesPromise = Promise.all([
+      import('firebase/app'),
+      import('firebase/auth'),
+      import('firebase/firestore'),
+      import('firebase/storage'),
+      import('firebase/analytics'),
+    ]).then(async ([appModule, authModule, firestoreModule, storageModule, analyticsModule]) => {
+      const app = appModule.initializeApp(firebaseConfig)
+      const analytics =
+        firebaseConfig.measurementId && (await analyticsModule.isSupported())
+          ? analyticsModule.getAnalytics(app)
+          : null
+
+      return {
+        app,
+        analytics,
+        auth: authModule.getAuth(app),
+        authModule,
+        db: firestoreModule.getFirestore(app),
+        storage: storageModule.getStorage(app),
+      }
+    })
+  }
+
+  return servicesPromise
+}

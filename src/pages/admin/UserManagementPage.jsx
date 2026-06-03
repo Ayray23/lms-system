@@ -1,5 +1,4 @@
-import { DataTable } from '../../components/DataTable'
-import { SectionCard } from '../../components/SectionCard'
+import { AdminResourcePage } from './AdminResourcePage'
 import { usersTable } from '../../utils/mockData'
 
 const columns = [
@@ -9,16 +8,28 @@ const columns = [
   { key: 'status', label: 'Status' },
 ]
 
+const fields = [
+  { name: 'name', label: 'Full name', placeholder: 'Admin Officer' },
+  { name: 'role', label: 'Role', defaultValue: 'Student', options: ['Student', 'Lecturer', 'Admin'] },
+  {
+    name: 'department',
+    label: 'Department',
+    defaultValue: 'Software Engineering',
+    options: ['Software Engineering', 'Computer Science', 'Information Systems', 'ICT Unit'],
+  },
+  { name: 'status', label: 'Status', defaultValue: 'Active', options: ['Active', 'Suspended', 'Pending'] },
+]
+
 export function UserManagementPage() {
   return (
-    <div className="page-stack">
-      <SectionCard
-        title="User Management"
-        description="Manage students, lecturers, admins, and role assignments."
-        action={<button className="primary-button small">Add user</button>}
-      >
-        <DataTable columns={columns} rows={usersTable} />
-      </SectionCard>
-    </div>
+    <AdminResourcePage
+      title="User Management"
+      description="Manage students, lecturers, admins, and role assignments."
+      actionLabel="Add user"
+      columns={columns}
+      rows={usersTable}
+      fields={fields}
+      createRecord={(form) => form}
+    />
   )
 }

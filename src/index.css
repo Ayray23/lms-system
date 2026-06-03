@@ -667,6 +667,37 @@ p {
   line-height: 1.7;
 }
 
+.settings-row {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--heading);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.settings-row:hover,
+.settings-row.active {
+  border-color: rgba(77, 162, 255, 0.35);
+  background: rgba(77, 162, 255, 0.08);
+}
+
+.settings-row p {
+  color: var(--muted);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.settings-row span {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
 .catalogue-card h3 {
   font-size: 1.28rem;
 }
@@ -783,6 +814,15 @@ p {
 
 .primary-button.wide {
   width: 100%;
+}
+
+.section-heading .primary-button,
+.section-heading .ghost-button,
+.inline-actions .primary-button,
+.inline-actions .ghost-button,
+.catalogue-card-footer .primary-button,
+.catalogue-card-footer .ghost-button {
+  width: auto;
 }
 
 .info-banner,
@@ -1167,8 +1207,7 @@ p {
   box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.14);
 }
 
-.submit-button,
-.primary-button {
+.submit-button {
   width: 100%;
   min-height: 52px;
   border: none;
@@ -1181,8 +1220,7 @@ p {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.submit-button:hover,
-.primary-button:hover {
+.submit-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 18px 40px rgba(56, 189, 248, 0.18);
 }

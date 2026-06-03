@@ -1,5 +1,4 @@
-import { DataTable } from '../../components/DataTable'
-import { SectionCard } from '../../components/SectionCard'
+import { AdminResourcePage } from './AdminResourcePage'
 import { adminLecturers } from '../../utils/mockData'
 
 const columns = [
@@ -10,16 +9,29 @@ const columns = [
   { key: 'status', label: 'Status' },
 ]
 
+const fields = [
+  { name: 'name', label: 'Full name', placeholder: 'Dr. New Lecturer' },
+  { name: 'email', label: 'Email', type: 'email', placeholder: 'lecturer@selms.dev' },
+  {
+    name: 'department',
+    label: 'Department',
+    defaultValue: 'Software Engineering',
+    options: ['Software Engineering', 'Computer Science', 'Information Systems', 'IT Management'],
+  },
+  { name: 'courses', label: 'Courses assigned', defaultValue: '0' },
+  { name: 'status', label: 'Status', defaultValue: 'Active', options: ['Active', 'Pending', 'Inactive'] },
+]
+
 export function LecturerManagementPage() {
   return (
-    <div className="page-stack">
-      <SectionCard
-        title="Lecturer Management"
-        description="Manage lecturers, assign courses, and review teaching assignments."
-        action={<button className="primary-button small">Add Lecturer</button>}
-      >
-        <DataTable columns={columns} rows={adminLecturers} />
-      </SectionCard>
-    </div>
+    <AdminResourcePage
+      title="Lecturer Management"
+      description="Manage lecturers, assign courses, and review teaching assignments."
+      actionLabel="Add lecturer"
+      columns={columns}
+      rows={adminLecturers}
+      fields={fields}
+      createRecord={(form) => form}
+    />
   )
 }

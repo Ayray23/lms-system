@@ -1,5 +1,4 @@
-import { DataTable } from '../../components/DataTable'
-import { SectionCard } from '../../components/SectionCard'
+import { AdminResourcePage } from './AdminResourcePage'
 import { adminQuizData } from '../../utils/mockData'
 
 const columns = [
@@ -9,16 +8,23 @@ const columns = [
   { key: 'status', label: 'Status' },
 ]
 
+const fields = [
+  { name: 'title', label: 'Quiz title', placeholder: 'Software Engineering Basics' },
+  { name: 'type', label: 'Question type', defaultValue: 'Multiple Choice', options: ['Multiple Choice', 'True/False', 'Short Answer', 'Code Output'] },
+  { name: 'timeLimit', label: 'Time limit', defaultValue: '20 mins' },
+  { name: 'status', label: 'Status', defaultValue: 'Draft', options: ['Draft', 'Published', 'Scheduled'] },
+]
+
 export function AdminQuizzesPage() {
   return (
-    <div className="page-stack">
-      <SectionCard
-        title="Quiz Management"
-        description="Build quizzes, add questions, and configure auto-grading settings."
-        action={<button className="primary-button small">Create Quiz</button>}
-      >
-        <DataTable columns={columns} rows={adminQuizData} />
-      </SectionCard>
-    </div>
+    <AdminResourcePage
+      title="Quiz Management"
+      description="Build quizzes, add questions, and configure auto-grading settings."
+      actionLabel="Create quiz"
+      columns={columns}
+      rows={adminQuizData}
+      fields={fields}
+      createRecord={(form) => form}
+    />
   )
 }

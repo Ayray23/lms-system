@@ -1,5 +1,4 @@
-import { DataTable } from '../../components/DataTable'
-import { SectionCard } from '../../components/SectionCard'
+import { AdminResourcePage } from './AdminResourcePage'
 import { adminAssignments } from '../../utils/mockData'
 
 const columns = [
@@ -9,16 +8,23 @@ const columns = [
   { key: 'status', label: 'Status' },
 ]
 
+const fields = [
+  { name: 'title', label: 'Assignment title', placeholder: 'Design a UML Diagram' },
+  { name: 'course', label: 'Course', placeholder: 'SEN 301' },
+  { name: 'dueDate', label: 'Due date', type: 'date' },
+  { name: 'status', label: 'Status', defaultValue: 'Draft', options: ['Draft', 'Open', 'Submitted', 'Closed'] },
+]
+
 export function AdminAssignmentsPage() {
   return (
-    <div className="page-stack">
-      <SectionCard
-        title="Assignment Management"
-        description="Create, update, grade, and manage assignments across your courses."
-        action={<button className="primary-button small">Create Assignment</button>}
-      >
-        <DataTable columns={columns} rows={adminAssignments} />
-      </SectionCard>
-    </div>
+    <AdminResourcePage
+      title="Assignment Management"
+      description="Create, update, grade, and manage assignments across your courses."
+      actionLabel="Create assignment"
+      columns={columns}
+      rows={adminAssignments}
+      fields={fields}
+      createRecord={(form) => form}
+    />
   )
 }

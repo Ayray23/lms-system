@@ -1,5 +1,4 @@
-import { DataTable } from '../../components/DataTable'
-import { SectionCard } from '../../components/SectionCard'
+import { AdminResourcePage } from './AdminResourcePage'
 import { courseManagementRows } from '../../utils/mockData'
 
 const columns = [
@@ -9,16 +8,28 @@ const columns = [
   { key: 'students', label: 'Enrollment' },
 ]
 
+const fields = [
+  { name: 'courseCode', label: 'Course code', placeholder: 'SEN 409' },
+  { name: 'courseTitle', label: 'Course title', placeholder: 'Software Project Management' },
+  { name: 'owner', label: 'Assigned lecturer', placeholder: 'Dr. Musa Lecturer' },
+  { name: 'students', label: 'Expected enrollment', defaultValue: '0' },
+]
+
 export function PlatformCoursesPage() {
   return (
-    <div className="page-stack">
-      <SectionCard
-        title="Course Management"
-        description="Assign lecturers, review catalogue coverage, and monitor course content."
-        action={<button className="primary-button small">Create course</button>}
-      >
-        <DataTable columns={columns} rows={courseManagementRows} />
-      </SectionCard>
-    </div>
+    <AdminResourcePage
+      title="Course Management"
+      description="Assign lecturers, review catalogue coverage, and monitor course content."
+      actionLabel="Create course"
+      columns={columns}
+      rows={courseManagementRows}
+      fields={fields}
+      createRecord={(form) => ({
+        course: `${form.courseCode} - ${form.courseTitle}`,
+        owner: form.owner,
+        materials: '0 files',
+        students: form.students,
+      })}
+    />
   )
 }
