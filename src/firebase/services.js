@@ -52,6 +52,7 @@ export const materialService = {
 export const assignmentService = {
   createAssignment: (assignment) => createRecord(collections.assignments, assignment),
   updateAssignment: (assignmentId, assignment) => updateRecord(collections.assignments, assignmentId, assignment),
+  listAssignments: () => listRecords(collections.assignments),
   listCourseAssignments: async (courseId) => {
     const constraints = await makeQueryConstraints((firestore) => [
       firestore.where('courseId', '==', courseId),

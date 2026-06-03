@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Modal } from '../../components/Modal'
 import { SectionCard } from '../../components/SectionCard'
-import { announcements } from '../../utils/mockData'
+import { useFirestoreCollection } from '../../hooks/useFirestoreCollection'
+import { announcementService } from '../../firebase/services'
 
 export function AnnouncementsPage() {
-  const [items, setItems] = useState(announcements)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState({
     title: '',
@@ -12,17 +12,30 @@ export function AnnouncementsPage() {
     time: 'Just now',
   })
 
+  const {
+    records: items,
+    loading,
+    error,
+    refresh,
+  } = useFirestoreCollection(announcementService.listAnnouncements)
+
   const handleChange = (event) => {
     const { name, value } = event.target
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handlePost = () => {
+  const handlePost = async () => {
     if (!form.title.trim()) return
 
-    setItems((prev) => [{ ...form, title: form.title.trim() }, ...prev])
+    await announcementService.createAnnouncement({
+      title: form.title.trim(),
+      audience: form.audience,
+      time: form.time || 'Just now',
+    })
+
     setForm({ title: '', audience: 'Entire course', time: 'Just now' })
     setShowModal(false)
+    await refresh()
   }
 
   return (

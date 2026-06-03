@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Modal } from '../../components/Modal'
 import { DataTable } from '../../components/DataTable'
 import { SectionCard } from '../../components/SectionCard'
-import { assignments } from '../../utils/mockData'
+import { useAuth } from '../../context/AuthContext'
+import { useFirestoreCollection } from '../../hooks/useFirestoreCollection'
+import { assignmentService, submissionService } from '../../firebase/services'
 
 const columns = [
   { key: 'title', label: 'Assignment' },
@@ -12,21 +14,48 @@ const columns = [
 ]
 
 export function StudentAssignmentsPage() {
+  const { currentUser } = useAuth()
   const [showSubmitModal, setShowSubmitModal] = useState(false)
-  const [selectedAssignment, setSelectedAssignment] = useState(assignments[0])
+  const [selectedAssignment, setSelectedAssignment] = useState(null)
   const [submissionNotes, setSubmissionNotes] = useState('')
   const [submissionStatus, setSubmissionStatus] = useState('')
 
+  const {
+    records: assignments,
+    loading,
+    error,
+    refresh,
+  } = useFirestoreCollection(assignmentService.listAssignments)
+
+  useEffect(() => {
+    if (!selectedAssignment && assignments.length > 0) {
+      setSelectedAssignment(assignments[0])
+    }
+  }, [assignments, selectedAssignment])
+
   const openSubmitModal = () => {
-    setSelectedAssignment(assignments[0])
+    setSelectedAssignment(assignments[0] || null)
     setSubmissionNotes('')
     setSubmissionStatus('')
     setShowSubmitModal(true)
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (!selectedAssignment || !currentUser) {
+      setSubmissionStatus('Unable to submit assignment at this time.')
+      return
+    }
+
+    await submissionService.createSubmission({
+      studentId: currentUser.uid,
+      assignmentId: selectedAssignment.id,
+      notes: submissionNotes,
+      status: 'Submitted',
+    })
+
     setSubmissionStatus(`Assignment "${selectedAssignment.title}" submitted successfully.`)
     setSubmissionNotes('')
+    await refresh()
   }
 
   return (

@@ -1,30 +1,51 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Modal } from '../../components/Modal'
 import { SectionCard } from '../../components/SectionCard'
-import { studentCourses } from '../../utils/mockData'
+import { useAuth } from '../../context/AuthContext'
+import { useFirestoreCollection } from '../../hooks/useFirestoreCollection'
+import { courseService, enrollmentService } from '../../firebase/services'
 
 export function StudentCoursesPage() {
   const [search, setSearch] = useState('')
   const [departmentFilter, setDepartmentFilter] = useState('all')
   const [levelFilter, setLevelFilter] = useState('all')
-  const [selectedCourse, setSelectedCourse] = useState(studentCourses[0])
+  const [selectedCourse, setSelectedCourse] = useState(null)
   const [enrolledCourses, setEnrolledCourses] = useState([])
-  const navigate = useNavigate()
   const [showCourseModal, setShowCourseModal] = useState(false)
   const [showOutlineModal, setShowOutlineModal] = useState(false)
   const [enrollMessage, setEnrollMessage] = useState('')
+  const { currentUser } = useAuth()
+  const navigate = useNavigate()
+
+  const {
+    records: studentCourses,
+    loading: coursesLoading,
+    error: coursesError,
+    refresh: refreshCourses,
+  } = useFirestoreCollection(courseService.listCourses)
+
+  useEffect(() => {
+    if (!selectedCourse && studentCourses.length > 0) {
+      setSelectedCourse(studentCourses[0])
+    }
+  }, [studentCourses, selectedCourse])
 
   const filteredCourses = useMemo(() => {
     return studentCourses.filter((course) => {
+      const title = String(course.title || '')
+      const code = String(course.code || '')
+      const department = String(course.department || '').toLowerCase()
+      const level = String(course.level || '')
+
       const matchesSearch =
-        course.title.toLowerCase().includes(search.toLowerCase()) ||
-        course.code.toLowerCase().includes(search.toLowerCase())
-      const matchesDepartment = departmentFilter === 'all' || course.department.toLowerCase().includes(departmentFilter)
-      const matchesLevel = levelFilter === 'all' || course.level === levelFilter
+        title.toLowerCase().includes(search.toLowerCase()) ||
+        code.toLowerCase().includes(search.toLowerCase())
+      const matchesDepartment = departmentFilter === 'all' || department.includes(departmentFilter)
+      const matchesLevel = levelFilter === 'all' || level === levelFilter
       return matchesSearch && matchesDepartment && matchesLevel
     })
-  }, [search, departmentFilter, levelFilter])
+  }, [search, departmentFilter, levelFilter, studentCourses])
 
   const openCourseModal = (course) => {
     setSelectedCourse(course)
@@ -37,12 +58,25 @@ export function StudentCoursesPage() {
     setShowOutlineModal(true)
   }
 
-  const confirmEnroll = () => {
+  const confirmEnroll = async () => {
+    if (!selectedCourse || !currentUser) {
+      setEnrollMessage('Unable to enroll at this time.')
+      return
+    }
+
+    await enrollmentService.enrollStudent({
+      studentId: currentUser.uid,
+      courseId: selectedCourse.id,
+      courseCode: selectedCourse.code,
+      status: 'Enrolled',
+    })
+
     setEnrolledCourses((prev) => {
-      if (prev.includes(selectedCourse.code)) return prev
-      return [...prev, selectedCourse.code]
+      if (selectedCourse && prev.includes(selectedCourse.code)) return prev
+      return selectedCourse ? [...prev, selectedCourse.code] : prev
     })
     setEnrollMessage(`You are now enrolled in ${selectedCourse.code}.`)
+    setShowCourseModal(false)
   }
 
   return (
