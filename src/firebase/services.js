@@ -9,7 +9,12 @@ import {
 } from './firestoreRepository'
 
 export const userService = {
-  createProfile: (profile) => createRecord(collections.users, profile, profile.uid),
+  createProfile: (profile) => {
+    if (profile.uid) {
+      return createRecord(collections.users, profile, profile.uid)
+    }
+    return createRecord(collections.users, profile)
+  },
   updateProfile: (uid, profile) => updateRecord(collections.users, uid, profile),
   getProfile: (uid) => getRecord(collections.users, uid),
   listUsers: () => listRecords(collections.users),

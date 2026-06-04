@@ -1,5 +1,6 @@
+import { useCallback } from 'react'
 import { AdminResourcePage } from './AdminResourcePage'
-import { courseManagementRows } from '../../utils/mockData'
+import { courseService } from '../../firebase/services'
 
 const columns = [
   { key: 'course', label: 'Course' },
@@ -16,20 +17,47 @@ const fields = [
 ]
 
 export function PlatformCoursesPage() {
+  const loadCourses = useCallback(async () => {
+    const courses = await courseService.listCourses()
+    return courses.map((course) => ({
+      id: course.id,
+      course: `${course.code} - ${course.title}`,
+      owner: course.lecturer || 'Unassigned',
+      materials: course.materials ? `${course.materials} files` : '0 files',
+      students: String(course.students || 0),
+    }))
+  }, [])
+
   return (
     <AdminResourcePage
       title="Course Management"
       description="Assign lecturers, review catalogue coverage, and monitor course content."
       actionLabel="Create course"
       columns={columns}
-      rows={courseManagementRows}
+      rows={[]}
+      loadRecords={loadCourses}
       fields={fields}
-      createRecord={(form) => ({
-        course: `${form.courseCode} - ${form.courseTitle}`,
-        owner: form.owner,
-        materials: '0 files',
-        students: form.students,
-      })}
+      createRecord={async (form) => {
+        const savedCourse = await courseService.createCourse({
+          code: form.courseCode,
+          title: form.courseTitle,
+          lecturer: form.owner,
+          students: Number(form.students),
+          status: 'Active',
+          summary: '',
+          department: 'Software Engineering',
+          format: 'Lecture',
+          lessons: 0,
+        })
+
+        return {
+          id: savedCourse.id,
+          course: `${savedCourse.code} - ${savedCourse.title}`,
+          owner: savedCourse.lecturer,
+          materials: '0 files',
+          students: String(savedCourse.students || 0),
+        }
+      }}
     />
   )
 }

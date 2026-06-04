@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { DataTable } from '../../components/DataTable'
 import { Modal } from '../../components/Modal'
 import { SectionCard } from '../../components/SectionCard'
@@ -15,24 +15,68 @@ export function AdminResourcePage({
   rows,
   fields,
   createRecord,
+  loadRecords,
   children,
 }) {
   const [items, setItems] = useState(rows)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState(() => getInitialForm(fields))
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    if (!loadRecords) return
+
+    let active = true
+    const fetchRecords = async () => {
+      setLoading(true)
+      setError(null)
+
+      try {
+        const loaded = await loadRecords()
+        if (active) {
+          setItems(loaded || [])
+        }
+      } catch (err) {
+        if (active) {
+          console.error('Error loading admin resources:', err)
+          setError(err)
+        }
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchRecords()
+    return () => {
+      active = false
+    }
+  }, [loadRecords])
 
   const handleChange = (event) => {
     const { name, value } = event.target
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     const primaryField = fields[0]?.name
     if (primaryField && !form[primaryField]?.trim()) return
 
-    setItems((prev) => [createRecord(form), ...prev])
-    setForm(getInitialForm(fields))
     setShowModal(false)
+    setError(null)
+
+    try {
+      const newItem = await Promise.resolve(createRecord(form))
+      if (newItem) {
+        setItems((prev) => [newItem, ...prev])
+        setForm(getInitialForm(fields))
+      }
+    } catch (err) {
+      console.error('Error creating admin resource:', err)
+      setError(err)
+    }
   }
 
   return (
@@ -46,7 +90,16 @@ export function AdminResourcePage({
           </button>
         }
       >
-        <DataTable columns={columns} rows={items} />
+        {error && (
+          <div className="mb-5 rounded-3xl bg-rose-500/10 p-4 text-sm text-rose-200">
+            {error.message || 'Unable to load or save records.'}
+          </div>
+        )}
+        {loading && !items.length ? (
+          <div className="text-slate-400">Loading records...</div>
+        ) : (
+          <DataTable columns={columns} rows={items} />
+        )}
       </SectionCard>
 
       {children}

@@ -1,5 +1,6 @@
+import { useCallback } from 'react'
 import { AdminResourcePage } from './AdminResourcePage'
-import { adminLecturers } from '../../utils/mockData'
+import { userService } from '../../firebase/services'
 
 const columns = [
   { key: 'name', label: 'Name' },
@@ -23,15 +24,48 @@ const fields = [
 ]
 
 export function LecturerManagementPage() {
+  const loadLecturers = useCallback(async () => {
+    const users = await userService.listUsers()
+    return users
+      .filter((user) => user.role === 'lecturer')
+      .map((user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        department: user.department || 'Unassigned',
+        courses: user.courses || '0',
+        status: user.status || 'Active',
+      }))
+  }, [])
+
   return (
     <AdminResourcePage
       title="Lecturer Management"
       description="Manage lecturers, assign courses, and review teaching assignments."
       actionLabel="Add lecturer"
       columns={columns}
-      rows={adminLecturers}
+      rows={[]}
+      loadRecords={loadLecturers}
       fields={fields}
-      createRecord={(form) => form}
+      createRecord={async (form) => {
+        const savedLecturer = await userService.createProfile({
+          name: form.name,
+          email: form.email,
+          department: form.department,
+          courses: form.courses,
+          status: form.status,
+          role: 'lecturer',
+        })
+
+        return {
+          id: savedLecturer.id,
+          name: savedLecturer.name,
+          email: savedLecturer.email,
+          department: savedLecturer.department,
+          courses: savedLecturer.courses,
+          status: savedLecturer.status,
+        }
+      }}
     />
   )
 }
