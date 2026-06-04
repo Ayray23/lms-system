@@ -47,6 +47,8 @@ export function StudentCoursesPage() {
     })
   }, [search, departmentFilter, levelFilter, studentCourses])
 
+  const featuredCourse = studentCourses.length > 0 ? studentCourses[0] : null
+
   const openCourseModal = (course) => {
     setSelectedCourse(course)
     setEnrollMessage('')
@@ -92,17 +94,30 @@ export function StudentCoursesPage() {
         </div>
 
         <article className="featured-course-panel">
-          <div className="featured-course-top">
-            <span className="featured-label">Featured This Week</span>
-            <span className="course-badge">{studentCourses[0].code}</span>
-          </div>
-          <h3>{studentCourses[0].title}</h3>
-          <p>{studentCourses[0].summary}</p>
-          <div className="featured-course-meta">
-            <span>{studentCourses[0].lecturer}</span>
-            <span>{studentCourses[0].credits}</span>
-            <span>{studentCourses[0].lessons} lessons</span>
-          </div>
+          {featuredCourse ? (
+            <>
+              <div className="featured-course-top">
+                <span className="featured-label">Featured This Week</span>
+                <span className="course-badge">{featuredCourse.code}</span>
+              </div>
+              <h3>{featuredCourse.title}</h3>
+              <p>{featuredCourse.summary}</p>
+              <div className="featured-course-meta">
+                <span>{featuredCourse.lecturer}</span>
+                <span>{featuredCourse.credits}</span>
+                <span>{featuredCourse.lessons} lessons</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="featured-course-top">
+                <span className="featured-label">Featured This Week</span>
+                <span className="course-badge">No courses yet</span>
+              </div>
+              <h3>Loading course catalogue</h3>
+              <p>Please wait while we load the current course offerings.</p>
+            </>
+          )}
         </article>
       </section>
 
@@ -110,8 +125,13 @@ export function StudentCoursesPage() {
         title="Browse Courses"
         description="Search, filter, and compare course offerings before enrollment."
         action={
-          <button className="primary-button small" type="button" onClick={() => openCourseModal(studentCourses[0])}>
-            Enroll in course
+          <button
+            className="primary-button small"
+            type="button"
+            disabled={!featuredCourse}
+            onClick={() => openCourseModal(featuredCourse)}
+          >
+            {featuredCourse ? 'Enroll in course' : 'Loading courses'}
           </button>
         }
       >
