@@ -49,6 +49,16 @@ export const materialService = {
   },
 }
 
+export const studentMaterialService = {
+  selectMaterial: (selection) => createRecord(collections.studentMaterialSelections, selection),
+  listSelectedMaterials: async (studentId) => {
+    const constraints = await makeQueryConstraints((firestore) => [
+      firestore.where('studentId', '==', studentId),
+    ])
+    return listRecords(collections.studentMaterialSelections, constraints)
+  },
+}
+
 export const assignmentService = {
   createAssignment: (assignment) => createRecord(collections.assignments, assignment),
   updateAssignment: (assignmentId, assignment) => updateRecord(collections.assignments, assignmentId, assignment),

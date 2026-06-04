@@ -1,23 +1,92 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { SectionCard } from '../../components/SectionCard'
-import { assignments, studentCourses } from '../../utils/mockData'
+import { useAuth } from '../../context/AuthContext'
+import { useFirestoreCollection } from '../../hooks/useFirestoreCollection'
+import { assignmentService, courseService, materialService, studentMaterialService } from '../../firebase/services'
 
 export function CourseDetailPage() {
   const { courseCode } = useParams()
   const navigate = useNavigate()
+  const { currentUser } = useAuth()
   const [enrolled, setEnrolled] = useState(false)
+  const [selectionMessage, setSelectionMessage] = useState('')
+
+  const {
+    records: courses,
+    loading: coursesLoading,
+  } = useFirestoreCollection(courseService.listCourses)
 
   const course = useMemo(() => {
-    return studentCourses.find((item) => item.code === decodeURIComponent(courseCode))
-  }, [courseCode])
+    const code = decodeURIComponent(courseCode || '').toLowerCase()
+    return courses.find((item) => String(item.code || '').toLowerCase() === code)
+  }, [courseCode, courses])
 
-  const courseAssignments = useMemo(() => {
-    if (!course) return []
-    return assignments.filter((assignment) => assignment.course === course.code)
-  }, [course])
+  const {
+    records: courseAssignments,
+    loading: assignmentsLoading,
+  } = useFirestoreCollection(
+    useCallback(async () => {
+      if (!course) return []
+      return assignmentService.listCourseAssignments(course.id)
+    }, [course]),
+    [course]
+  )
 
-  if (!course) {
+  const {
+    records: materials,
+    loading: materialsLoading,
+    refresh: refreshMaterials,
+  } = useFirestoreCollection(
+    useCallback(async () => {
+      if (!course) return []
+      return materialService.listCourseMaterials(course.id)
+    }, [course]),
+    [course]
+  )
+
+  const {
+    records: selectedMaterials,
+    loading: selectedLoading,
+    refresh: refreshSelections,
+  } = useFirestoreCollection(
+    useCallback(async () => {
+      if (!currentUser) return []
+      return studentMaterialService.listSelectedMaterials(currentUser.uid)
+    }, [currentUser]),
+    [currentUser]
+  )
+
+  const selectedMaterialIds = useMemo(
+    () => selectedMaterials.map((item) => item.materialId),
+    [selectedMaterials]
+  )
+
+  useEffect(() => {
+    if (selectionMessage) {
+      const timeout = window.setTimeout(() => setSelectionMessage(''), 3500)
+      return () => window.clearTimeout(timeout)
+    }
+    return undefined
+  }, [selectionMessage])
+
+  const handleSelectMaterial = async (material) => {
+    if (!currentUser || !course) return
+
+    await studentMaterialService.selectMaterial({
+      studentId: currentUser.uid,
+      courseId: course.id,
+      materialId: material.id,
+      title: material.title,
+      type: material.type,
+      pickedAt: new Date().toISOString(),
+    })
+
+    setSelectionMessage(`Added "${material.title}" to your material list.`)
+    await refreshSelections()
+  }
+
+  if (!course && !coursesLoading) {
     return (
       <div className="page-stack p-6">
         <SectionCard title="Course not found" description="The course code does not match any available course.">
@@ -35,8 +104,8 @@ export function CourseDetailPage() {
   return (
     <div className="page-stack p-6">
       <SectionCard
-        title={`${course.code} — ${course.title}`}
-        description={`In-depth course page for ${course.department}`}
+        title={`${course?.code || 'Course'} — ${course?.title || 'Loading...'}`}
+        description={`In-depth course page for ${course?.department || 'your selected course'}`}
         action={
           <button className="primary-button small" type="button" onClick={() => setEnrolled(true)}>
             {enrolled ? 'Enrolled' : 'Enroll now'}
@@ -45,34 +114,58 @@ export function CourseDetailPage() {
       >
         <div className="grid gap-6 lg:grid-cols-[1.5fr_0.9fr]">
           <div className="space-y-4">
-            <p className="text-slate-300">{course.summary}</p>
+            <p className="text-slate-300">{course?.summary || 'This course page pulls suggested course materials from Firestore.'}</p>
             <div className="rounded-3xl bg-slate-950/80 p-6 text-sm text-slate-300">
               <div className="grid gap-4 sm:grid-cols-2">
                 <article>
                   <span className="text-slate-400">Lecturer</span>
-                  <p className="mt-2 text-white">{course.lecturer}</p>
+                  <p className="mt-2 text-white">{course?.lecturer || 'TBD'}</p>
                 </article>
                 <article>
                   <span className="text-slate-400">Format</span>
-                  <p className="mt-2 text-white">{course.format}</p>
+                  <p className="mt-2 text-white">{course?.format || 'TBD'}</p>
                 </article>
                 <article>
                   <span className="text-slate-400">Credits</span>
-                  <p className="mt-2 text-white">{course.credits}</p>
+                  <p className="mt-2 text-white">{course?.credits || 'TBD'}</p>
                 </article>
                 <article>
                   <span className="text-slate-400">Lessons</span>
-                  <p className="mt-2 text-white">{course.lessons}</p>
+                  <p className="mt-2 text-white">{course?.lessons || 'TBD'}</p>
                 </article>
               </div>
             </div>
             <div className="rounded-3xl bg-slate-950/80 p-6 text-sm text-slate-300">
-              <h3 className="text-lg font-semibold text-white">What you will learn</h3>
-              <ul className="mt-4 list-disc space-y-3 pl-5">
-                <li>Core concepts and practical exercises for {course.department.toLowerCase()}.</li>
-                <li>Weekly projects, code walkthroughs, and review sessions.</li>
-                <li>Assessment-ready work aligned with current semester goals.</li>
-              </ul>
+              <h3 className="text-lg font-semibold text-white">Suggested course materials</h3>
+              <p className="mt-3 text-slate-400">Pick materials curated for your software engineering course.</p>
+              <div className="mt-4 space-y-3">
+                {materialsLoading ? (
+                  <p className="text-slate-400">Loading suggested materials...</p>
+                ) : materials.length ? (
+                  materials.map((material) => (
+                    <div key={material.id} className="rounded-3xl bg-slate-950/70 p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="font-medium text-white">{material.title}</p>
+                          <p className="text-slate-400 text-sm">{material.type || 'Material'} · {material.format || 'File'}</p>
+                        </div>
+                        <button
+                          className="ghost-button small"
+                          type="button"
+                          disabled={selectedMaterialIds.includes(material.id)}
+                          onClick={() => handleSelectMaterial(material)}
+                        >
+                          {selectedMaterialIds.includes(material.id) ? 'Selected' : 'Select'}
+                        </button>
+                      </div>
+                      <p className="mt-3 text-slate-400 text-sm">{material.description || 'No description available.'}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-slate-400">No suggested materials are available for this course yet.</p>
+                )}
+              </div>
+              {selectionMessage && <p className="mt-4 text-emerald-300">{selectionMessage}</p>}
             </div>
           </div>
 
@@ -82,15 +175,15 @@ export function CourseDetailPage() {
               <div className="mt-4 space-y-3 text-sm text-slate-300">
                 <p>
                   <span className="block text-slate-400">Level</span>
-                  {course.level}
+                  {course?.level || 'TBD'}
                 </p>
                 <p>
                   <span className="block text-slate-400">Department</span>
-                  {course.department}
+                  {course?.department || 'TBD'}
                 </p>
                 <p>
                   <span className="block text-slate-400">Status</span>
-                  {course.status}
+                  {course?.status || 'TBD'}
                 </p>
               </div>
             </div>
@@ -103,11 +196,13 @@ export function CourseDetailPage() {
                 </span>
               </div>
               <div className="mt-4 space-y-3 text-sm text-slate-300">
-                {courseAssignments.length ? (
+                {assignmentsLoading ? (
+                  <p className="text-slate-400">Loading assignments...</p>
+                ) : courseAssignments.length ? (
                   courseAssignments.map((assignment) => (
-                    <div key={assignment.title} className="rounded-3xl bg-slate-950/70 p-3">
+                    <div key={assignment.id} className="rounded-3xl bg-slate-950/70 p-3">
                       <p className="font-medium text-white">{assignment.title}</p>
-                      <p className="text-slate-400">Due {assignment.deadline}</p>
+                      <p className="text-slate-400">Due {assignment.deadline || 'TBD'}</p>
                     </div>
                   ))
                 ) : (
@@ -139,9 +234,9 @@ export function CourseDetailPage() {
             <article className="feed-item">
               <div>
                 <strong>Status</strong>
-                <p>{course.status}</p>
+                <p>{course?.status || 'TBD'}</p>
               </div>
-              <span>{course.lessons} lessons</span>
+              <span>{course?.lessons || 'TBD'} lessons</span>
             </article>
             <article className="feed-item">
               <div>
@@ -160,22 +255,24 @@ export function CourseDetailPage() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Related assignments" description="Assignments tied to this course">
-          {courseAssignments.length ? (
+        <SectionCard title="Selected course materials" description="Your saved materials for this course">
+          {selectedLoading ? (
+            <p className="text-slate-400">Loading selected materials...</p>
+          ) : selectedMaterials.length ? (
             <div className="stack-list">
-              {courseAssignments.map((assignment) => (
-                <article key={assignment.title} className="feed-item">
+              {selectedMaterials.map((item) => (
+                <article key={item.id} className="feed-item">
                   <div>
-                    <strong>{assignment.title}</strong>
-                    <p>{assignment.status}</p>
+                    <strong>{item.title}</strong>
+                    <p>{item.type || 'Material'}</p>
                   </div>
-                  <span>{assignment.deadline}</span>
+                  <span>{new Date(item.pickedAt).toLocaleDateString()}</span>
                 </article>
               ))}
             </div>
           ) : (
             <div className="rounded-3xl bg-slate-950/80 p-6 text-slate-400">
-              No assignments are currently attached to this course.
+              Select materials from the list above to add them to your personal study library.
             </div>
           )}
         </SectionCard>

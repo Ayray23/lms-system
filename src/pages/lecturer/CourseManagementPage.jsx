@@ -1,65 +1,100 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DataTable } from '../../components/DataTable'
 import { Modal } from '../../components/Modal'
 import { SectionCard } from '../../components/SectionCard'
-import { courseContentItems, lecturerCourses } from '../../utils/mockData'
+import { useFirestoreCollection } from '../../hooks/useFirestoreCollection'
+import { courseService, materialService } from '../../firebase/services'
 
 const columns = [
-  { key: 'course', label: 'Course' },
+  { key: 'courseCode', label: 'Course' },
   { key: 'title', label: 'Material' },
   { key: 'type', label: 'Type' },
   { key: 'format', label: 'Format' },
   { key: 'visibility', label: 'Visibility' },
-  { key: 'updated', label: 'Updated' },
+  { key: 'updatedAt', label: 'Updated' },
 ]
 
 export function CourseManagementPage() {
-  const [materials, setMaterials] = useState(courseContentItems)
   const [showUploadModal, setShowUploadModal] = useState(false)
   const [form, setForm] = useState({
-    course: lecturerCourses[0].code,
+    courseId: '',
     title: '',
     type: 'Lecture Notes',
     format: 'PDF',
     visibility: 'Draft',
   })
 
+  const {
+    records: courses,
+    loading: coursesLoading,
+  } = useFirestoreCollection(courseService.listCourses)
+
+  useEffect(() => {
+    if (!form.courseId && courses.length) {
+      setForm((prev) => ({ ...prev, courseId: courses[0].id }))
+    }
+  }, [courses, form.courseId])
+
+  const selectedCourse = useMemo(
+    () => courses.find((course) => course.id === form.courseId) || null,
+    [courses, form.courseId]
+  )
+
+  const {
+    records: materials,
+    loading: materialsLoading,
+    refresh: refreshMaterials,
+  } = useFirestoreCollection(
+    useCallback(async () => {
+      if (!form.courseId) return []
+      return materialService.listCourseMaterials(form.courseId)
+    }, [form.courseId]),
+    [form.courseId]
+  )
+
   const handleChange = (event) => {
     const { name, value } = event.target
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleAddMaterial = () => {
-    if (!form.title.trim()) return
+  const handleAddMaterial = async () => {
+    if (!form.title.trim() || !form.courseId) return
 
-    setMaterials((prev) => [
-      {
-        ...form,
-        title: form.title.trim(),
-        updated: 'Just now',
-      },
-      ...prev,
-    ])
+    await materialService.createMaterial({
+      courseId: form.courseId,
+      courseCode: selectedCourse?.code || '',
+      title: form.title.trim(),
+      type: form.type,
+      format: form.format,
+      visibility: form.visibility,
+      updatedAt: new Date().toISOString(),
+    })
+
     setForm((prev) => ({ ...prev, title: '', visibility: 'Draft' }))
     setShowUploadModal(false)
+    await refreshMaterials()
   }
 
   return (
     <div className="page-stack">
       <section className="lecturer-course-grid">
-        {lecturerCourses.map((course) => (
-          <article key={course.code} className="lecturer-course-card">
-            <div>
-              <span className="course-badge">{course.code}</span>
-              <h3>{course.title}</h3>
-              <p>{course.students} students enrolled</p>
-            </div>
-            <div className="lecturer-metric-row">
-              <span>{course.completion} progress</span>
-              <span>{course.contentHealth}</span>
-            </div>
-          </article>
-        ))}
+        {courses.length ? (
+          courses.map((course) => (
+            <article key={course.id} className="lecturer-course-card">
+              <div>
+                <span className="course-badge">{course.code}</span>
+                <h3>{course.title}</h3>
+                <p>{course.students || 'No enrollment data yet'} students enrolled</p>
+              </div>
+              <div className="lecturer-metric-row">
+                <span>{course.completion || 'No progress data'}</span>
+                <span>{course.contentHealth || 'Content status unavailable'}</span>
+              </div>
+            </article>
+          ))
+        ) : (
+          <div className="text-slate-400">Loading courses or no assigned courses available.</div>
+        )}
       </section>
 
       <SectionCard
@@ -71,7 +106,7 @@ export function CourseManagementPage() {
           </button>
         }
       >
-        <DataTable columns={columns} rows={materials} />
+        <DataTable columns={columns} rows={materials} loading={materialsLoading} />
       </SectionCard>
 
       <SectionCard title="Publishing Checklist" description="Keep every course ready before class">
@@ -95,9 +130,9 @@ export function CourseManagementPage() {
       >
         <label>
           <span>Course</span>
-          <select name="course" value={form.course} onChange={handleChange}>
-            {lecturerCourses.map((course) => (
-              <option key={course.code} value={course.code}>
+          <select name="courseId" value={form.courseId} onChange={handleChange}>
+            {courses.map((course) => (
+              <option key={course.id} value={course.id}>
                 {course.code} - {course.title}
               </option>
             ))}

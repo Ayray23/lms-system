@@ -12,6 +12,7 @@ export const collections = {
   codeSubmissions: 'codeSubmissions',
   discussions: 'discussions',
   progress: 'progress',
+  studentMaterialSelections: 'studentMaterialSelections',
 }
 
 export const roles = {
