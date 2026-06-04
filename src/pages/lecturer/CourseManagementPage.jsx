@@ -23,6 +23,7 @@ export function CourseManagementPage() {
     format: 'PDF',
     visibility: 'Draft',
   })
+  const [saveError, setSaveError] = useState('')
 
   const {
     records: courses,
@@ -60,19 +61,25 @@ export function CourseManagementPage() {
   const handleAddMaterial = async () => {
     if (!form.title.trim() || !form.courseId) return
 
-    await materialService.createMaterial({
-      courseId: form.courseId,
-      courseCode: selectedCourse?.code || '',
-      title: form.title.trim(),
-      type: form.type,
-      format: form.format,
-      visibility: form.visibility,
-      updatedAt: new Date().toISOString(),
-    })
+    setSaveError('')
+    try {
+      await materialService.createMaterial({
+        courseId: form.courseId,
+        courseCode: selectedCourse?.code || '',
+        title: form.title.trim(),
+        type: form.type,
+        format: form.format,
+        visibility: form.visibility,
+        updatedAt: new Date().toISOString(),
+      })
 
-    setForm((prev) => ({ ...prev, title: '', visibility: 'Draft' }))
-    setShowUploadModal(false)
-    await refreshMaterials()
+      setForm((prev) => ({ ...prev, title: '', visibility: 'Draft' }))
+      setShowUploadModal(false)
+      await refreshMaterials()
+    } catch (error) {
+      console.error('Failed to save course material:', error)
+      setSaveError('Unable to save material to Firestore. Check console for details.')
+    }
   }
 
   return (
@@ -177,6 +184,7 @@ export function CourseManagementPage() {
             <option>Scheduled</option>
           </select>
         </label>
+        {saveError && <p className="mt-4 text-sm text-rose-300">{saveError}</p>}
       </Modal>
     </div>
   )

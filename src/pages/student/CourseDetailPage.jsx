@@ -11,6 +11,7 @@ export function CourseDetailPage() {
   const { currentUser } = useAuth()
   const [enrolled, setEnrolled] = useState(false)
   const [selectionMessage, setSelectionMessage] = useState('')
+  const [selectionError, setSelectionError] = useState('')
 
   const {
     records: courses,
@@ -73,17 +74,23 @@ export function CourseDetailPage() {
   const handleSelectMaterial = async (material) => {
     if (!currentUser || !course) return
 
-    await studentMaterialService.selectMaterial({
-      studentId: currentUser.uid,
-      courseId: course.id,
-      materialId: material.id,
-      title: material.title,
-      type: material.type,
-      pickedAt: new Date().toISOString(),
-    })
+    setSelectionError('')
+    try {
+      await studentMaterialService.selectMaterial({
+        studentId: currentUser.uid,
+        courseId: course.id,
+        materialId: material.id,
+        title: material.title,
+        type: material.type,
+        pickedAt: new Date().toISOString(),
+      })
 
-    setSelectionMessage(`Added "${material.title}" to your material list.`)
-    await refreshSelections()
+      setSelectionMessage(`Added "${material.title}" to your material list.`)
+      await refreshSelections()
+    } catch (error) {
+      console.error('Failed to save material selection:', error)
+      setSelectionError('Unable to save your selection to Firestore. Check console for details.')
+    }
   }
 
   if (!course && !coursesLoading) {
@@ -166,6 +173,7 @@ export function CourseDetailPage() {
                 )}
               </div>
               {selectionMessage && <p className="mt-4 text-emerald-300">{selectionMessage}</p>}
+              {selectionError && <p className="mt-4 text-rose-300">{selectionError}</p>}
             </div>
           </div>
 
