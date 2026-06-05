@@ -22,13 +22,13 @@ describe('LoginPage', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByLabelText(/Email address/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/Password/i)).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('you@school.edu')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Sign in/i })).toBeInTheDocument()
 
     const toggleButton = screen.getByRole('button', { name: /Show/i })
     await userEvent.click(toggleButton)
-    expect(screen.getByLabelText(/Password/i)).toHaveAttribute('type', 'text')
+    expect(screen.getByPlaceholderText('••••••••')).toHaveAttribute('type', 'text')
   })
 
   it('displays an error when login fails', async () => {
@@ -41,8 +41,8 @@ describe('LoginPage', () => {
       </MemoryRouter>,
     )
 
-    await userEvent.type(screen.getByLabelText(/Email address/i), 'test@school.edu')
-    await userEvent.type(screen.getByLabelText(/Password/i), 'password123')
+    await userEvent.type(screen.getByPlaceholderText('you@school.edu'), 'test@school.edu')
+    await userEvent.type(screen.getByPlaceholderText('••••••••'), 'password123')
     await userEvent.click(screen.getByRole('button', { name: /Sign in/i }))
 
     await waitFor(() => {

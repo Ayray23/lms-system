@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { vi } from 'vitest'
@@ -23,9 +23,13 @@ describe('RegisterPage', () => {
     )
 
     expect(screen.getByText(/Full name/i)).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /Continue/i }))
-    expect(screen.getByLabelText(/Password/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/Confirm password/i)).toBeInTheDocument()
+    const continueButton = screen.getByRole('button', { name: /Continue/i })
+    fireEvent.submit(continueButton.closest('form'))
+
+    await waitFor(() => {
+      expect(screen.getByText(/Create account/i)).toBeInTheDocument()
+      expect(screen.queryByText(/Continue/i)).not.toBeInTheDocument()
+    })
   })
 
   it('requires terms acceptance before submitting registration', async () => {
@@ -35,10 +39,19 @@ describe('RegisterPage', () => {
       </MemoryRouter>,
     )
 
-    await userEvent.click(screen.getByRole('button', { name: /Continue/i }))
-    await userEvent.type(screen.getByLabelText(/Password/i), 'password123')
-    await userEvent.type(screen.getByLabelText(/Confirm password/i), 'password123')
-    await userEvent.click(screen.getByRole('button', { name: /Sign up/i }))
+    const continueButton = screen.getByRole('button', { name: /Continue/i })
+    fireEvent.submit(continueButton.closest('form'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Create account/i })).toBeInTheDocument()
+    })
+
+    const form = screen.getByRole('button', { name: /Create account/i }).closest('form')
+    const passwordField = form.querySelector('input[name="password"]')
+    const confirmPasswordField = form.querySelector('input[name="confirmPassword"]')
+
+    await userEvent.type(passwordField, 'password123')
+    await userEvent.type(confirmPasswordField, 'password123')
+    await userEvent.click(screen.getByRole('button', { name: /Create account/i }))
 
     await waitFor(() => {
       expect(screen.getByText(/You must accept the terms to continue/i)).toBeInTheDocument()

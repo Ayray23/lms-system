@@ -18,7 +18,7 @@ describe('AppRoutes routing', () => {
       </MemoryRouter>,
     )
 
-    expect(await screen.findByText(/Sign in to SE-LMS/i)).toBeInTheDocument()
+    expect(await screen.findByText(/Sign in to your futuristic learning workspace/i)).toBeInTheDocument()
   })
 
   it('renders the login page on /login route', async () => {
@@ -29,7 +29,7 @@ describe('AppRoutes routing', () => {
       </MemoryRouter>,
     )
 
-    expect(await screen.findByText(/Sign in to SE-LMS/i)).toBeInTheDocument()
+    expect(await screen.findByText(/Sign in to your futuristic learning workspace/i)).toBeInTheDocument()
   })
 
   it('renders not found text for unknown routes', async () => {
