@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from 'react'
 import { getFirebaseServices, isFirebaseConfigured } from '../firebase/config'
+import { userService } from '../firebase/services'
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -49,25 +50,43 @@ export function AuthProvider({ children }) {
 
         setFirebaseServices(services)
         unsubscribe = onAuthStateChanged(services.auth, (user) => {
-          if (!user) {
-            setCurrentUser(null)
-            clearStoredProfile()
+          const handleAuthState = async () => {
+            if (!user) {
+              setCurrentUser(null)
+              clearStoredProfile()
+              setLoading(false)
+              return
+            }
+
+            const storedProfile = readStoredProfile()
+            let profile = {
+              uid: user.uid,
+              name: storedProfile?.name || user.displayName || 'SE-LMS User',
+              email: user.email || storedProfile?.email || '',
+              role: storedProfile?.role || 'student',
+              department: storedProfile?.department || 'Software Engineering',
+            }
+
+            try {
+              const firestoreProfile = await userService.getProfile(user.uid)
+              if (firestoreProfile) {
+                profile = {
+                  uid: firestoreProfile.id,
+                  ...firestoreProfile,
+                }
+              } else {
+                await userService.createProfile(profile)
+              }
+            } catch (error) {
+              console.error('Unable to load or save Firestore profile:', error)
+            }
+
+            writeStoredProfile(profile)
+            setCurrentUser(profile)
             setLoading(false)
-            return
           }
 
-          const storedProfile = readStoredProfile()
-          const profile = {
-            uid: user.uid,
-            name: storedProfile?.name || user.displayName || 'SE-LMS User',
-            email: user.email || storedProfile?.email || '',
-            role: storedProfile?.role || 'student',
-            department: storedProfile?.department || 'Software Engineering',
-          }
-
-          writeStoredProfile(profile)
-          setCurrentUser(profile)
-          setLoading(false)
+          handleAuthState()
         })
       })
       .catch(() => {
@@ -96,12 +115,26 @@ export function AuthProvider({ children }) {
 
     const credential = await signInWithEmailAndPassword(services.auth, email, password)
     const storedProfile = readStoredProfile()
-    const profile = {
+    let profile = {
       uid: credential.user.uid,
       name: storedProfile?.name || credential.user.displayName || 'SE-LMS User',
       email: credential.user.email || email,
       role: storedProfile?.role || role,
       department: storedProfile?.department || 'Software Engineering',
+    }
+
+    try {
+      const firestoreProfile = await userService.getProfile(credential.user.uid)
+      if (firestoreProfile) {
+        profile = {
+          uid: firestoreProfile.id,
+          ...firestoreProfile,
+        }
+      } else {
+        await userService.createProfile(profile)
+      }
+    } catch (error) {
+      console.error('Unable to load or save Firestore profile during login:', error)
     }
 
     writeStoredProfile(profile)
@@ -141,6 +174,7 @@ export function AuthProvider({ children }) {
       uid: credential.user.uid,
     }
 
+    await userService.createProfile(firebaseProfile)
     writeStoredProfile(firebaseProfile)
     setCurrentUser(firebaseProfile)
     return firebaseProfile

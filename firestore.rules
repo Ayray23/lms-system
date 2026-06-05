@@ -10,8 +10,16 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/users/$(request.auth.uid));
     }
 
+    function userDocExists() {
+      return userDoc().data != null;
+    }
+
+    function userRole() {
+      return userDocExists() ? userDoc().data.role : null;
+    }
+
     function role() {
-      return signedIn() && userDoc().data.role;
+      return signedIn() && userRole();
     }
 
     function isAdmin() {
@@ -39,7 +47,7 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow create: if ownsUserDoc(userId) || isAdmin();
+      allow create: if ownsUserDoc(userId);
       allow read: if ownsUserDoc(userId) || isAdmin();
       allow update: if ownsUserDoc(userId) || isAdmin();
       allow delete: if isAdmin();
