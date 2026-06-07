@@ -3,6 +3,13 @@ import { Modal } from '../../components/Modal'
 import { SectionCard } from '../../components/SectionCard'
 import { codingProblems } from '../../utils/mockData'
 
+const languageOptions = [
+  { value: 'javascript', label: 'JavaScript' },
+  { value: 'python', label: 'Python' },
+  { value: 'java', label: 'Java' },
+  { value: 'cpp', label: 'C++' },
+]
+
 export function CodeSpacePage() {
   const [code, setCode] = useState(
     `function solve(input) {
@@ -10,21 +17,74 @@ export function CodeSpacePage() {
   return input;
 }`
   )
+  const [language, setLanguage] = useState('javascript')
   const [output, setOutput] = useState('>> Ready for code execution integration.')
   const [showSubmitModal, setShowSubmitModal] = useState(false)
   const [submitMessage, setSubmitMessage] = useState('')
+  const [loadingRuntime, setLoadingRuntime] = useState(false)
 
   const handleSave = () => {
     setOutput('>> Code saved successfully.')
   }
 
-  const handleRun = () => {
+  const loadPythonRuntime = async () => {
+    if (window.pyodide) return window.pyodide
+
+    setLoadingRuntime(true)
+    const script = document.createElement('script')
+    script.src = 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js'
+    script.async = true
+    document.body.appendChild(script)
+
+    await new Promise((resolve, reject) => {
+      script.onload = resolve
+      script.onerror = () => reject(new Error('Unable to load Python runtime'))
+    })
+
+    const pyodide = await window.loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.24.1/full/' })
+    window.pyodide = pyodide
+    setLoadingRuntime(false)
+    return pyodide
+  }
+
+  const handleRun = async () => {
     if (!code.trim()) {
       setOutput('>> Please add code before running.')
       return
     }
 
-    setOutput('>> Running your code...\n>> No runtime engine connected yet. Preview this result locally.')
+    if (language === 'javascript') {
+      setOutput('>> Running JavaScript...')
+      const logs = []
+      const capture = (...args) => logs.push(args.map((value) => (typeof value === 'object' ? JSON.stringify(value) : String(value))).join(' '))
+
+      try {
+        const runner = new Function('console', code)
+        const result = runner({ log: capture, warn: capture, error: capture })
+        const logOutput = logs.length ? logs.join('\n') : ''
+        const returnOutput = result !== undefined ? String(result) : ''
+        setOutput(
+          `>> Execution result:${returnOutput ? `\n${returnOutput}` : ''}${logOutput ? `\n${logOutput}` : ''}`.trim() || '>> Execution completed with no output.'
+        )
+      } catch (error) {
+        setOutput(`>> JavaScript error:\n${error.message}`)
+      }
+      return
+    }
+
+    if (language === 'python') {
+      setOutput('>> Loading Python runtime...')
+      try {
+        const pyodide = await loadPythonRuntime()
+        const result = await pyodide.runPythonAsync(code)
+        setOutput(`>> Python output:\n${result === undefined ? 'None' : String(result)}`)
+      } catch (error) {
+        setOutput(`>> Python error:\n${error.message}`)
+      }
+      return
+    }
+
+    setOutput(`>> Runtime support is available for JavaScript and Python only. ${language.toUpperCase()} execution is not connected yet.`)
   }
 
   const handleConfirmSubmit = () => {
@@ -52,14 +112,26 @@ export function CodeSpacePage() {
 
         <SectionCard
           title="Editor Workspace"
-          description="Monaco Editor plugs in here in the next phase."
+          description="Run simple code snippets in the browser. JavaScript executes locally; Python loads a browser runtime for snippets."
           action={
             <div className="inline-actions">
+              <select
+                name="language"
+                value={language}
+                onChange={(event) => setLanguage(event.target.value)}
+                className="rounded-2xl border border-white/10 bg-slate-950/80 px-4 py-3 text-sm text-slate-100 outline-none"
+              >
+                {languageOptions.map((option) => (
+                  <option key={option.value} value={option.value} className="bg-slate-950 text-slate-100">
+                    {option.label}
+                  </option>
+                ))}
+              </select>
               <button className="ghost-button" type="button" onClick={handleSave}>
                 Save
               </button>
-              <button className="ghost-button" type="button" onClick={handleRun}>
-                Run
+              <button className="ghost-button" type="button" onClick={handleRun} disabled={loadingRuntime}>
+                {loadingRuntime ? 'Loading...' : 'Run'}
               </button>
               <button className="primary-button small" type="button" onClick={() => setShowSubmitModal(true)}>
                 Submit
