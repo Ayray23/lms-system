@@ -108,26 +108,29 @@ export function DashboardLayout() {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <button
-                type="button"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-800 bg-slate-900/90 text-slate-200 shadow-sm transition hover:bg-slate-800 lg:hidden"
-                onClick={() => setMobileNavOpen(true)}
-                aria-label="Open navigation menu"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 7h14" />
-                  <path d="M3 10h14" />
-                  <path d="M3 13h14" />
-                </svg>
-              </button>
-              <label className="flex w-full max-w-sm items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/90 px-4 py-3 text-slate-300 shadow-inner shadow-black/10 focus-within:border-slate-500 sm:w-auto">
-                <span className="text-slate-400">Search</span>
-                <input
-                  type="search"
-                  className="min-w-0 bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-500"
-                  placeholder="Search courses, assignments, or users"
-                />
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="flex w-full max-w-sm items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/90 px-4 py-3 text-slate-300 shadow-inner shadow-black/10 focus-within:border-slate-500 sm:w-auto">
+                  <span className="text-slate-400">Search</span>
+                  <input
+                    type="search"
+                    className="min-w-0 bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-500"
+                    placeholder="Search courses, assignments, or users"
+                  />
+                </label>
+                <button
+                  type="button"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-800 bg-slate-900/90 text-slate-200 shadow-sm transition hover:bg-slate-800 lg:hidden"
+                  onClick={() => setMobileNavOpen(true)}
+                  aria-label="Open navigation menu"
+                >
+                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 7h14" />
+                    <path d="M3 10h14" />
+                    <path d="M3 13h14" />
+                  </svg>
+                </button>
+                
+              </div>
               <button
                 type="button"
                 className="inline-flex items-center justify-center rounded-2xl bg-slate-200 px-4 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-100"
