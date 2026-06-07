@@ -1059,8 +1059,41 @@ p {
     align-items: stretch;
   }
 
-  .lecturer-action-grid {
+  .hero-grid,
+  .stats-grid,
+  .list-grid,
+  .profile-grid,
+  .catalogue-grid,
+  .lecturer-ops-grid,
+  .lecturer-action-grid,
+  .lecturer-course-grid,
+  .lecturer-checklist,
+  .lecturer-timeline {
     grid-template-columns: 1fr;
+  }
+
+  .section-card,
+  .mini-panel,
+  .stat-card,
+  .list-item-card,
+  .course-card,
+  .profile-panel,
+  .catalogue-card,
+  .lecturer-course-card,
+  .lecturer-action-card,
+  .discussion-card {
+    padding: 20px;
+    border-radius: 24px;
+    min-width: 0;
+  }
+
+  .section-heading {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .stat-card h3 {
+    font-size: 1.75rem;
   }
 
   .feed-item {
