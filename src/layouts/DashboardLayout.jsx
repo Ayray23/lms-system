@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { dashboardStats, roleNavigation } from '../utils/mockData'
 
 export function DashboardLayout() {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const { currentUser, logout, isFirebaseConfigured } = useAuth()
   const navigate = useNavigate()
   const navItems = roleNavigation[currentUser?.role] || []
@@ -34,26 +36,43 @@ export function DashboardLayout() {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">
-        <aside className="border-b border-slate-800 bg-slate-950/90 px-6 py-6 shadow-[0_0_60px_rgba(0,0,0,0.35)] backdrop-blur lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto lg:border-b-0 lg:border-r lg:py-8">
-          <div className="space-y-4">
-            <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-[0_24px_60px_rgba(0,0,0,0.2)]">
-              <p className="text-xs uppercase tracking-[0.24em] text-slate-400">SE-LMS</p>
-              <h1 className="mt-3 text-2xl font-semibold text-white">Learning Workspace</h1>
-              <p className="mt-4 text-sm leading-6 text-slate-400">
-                Centralized dashboard for your role, courses, and assignments.
-              </p>
-              <span className="mt-5 inline-flex rounded-full bg-slate-800 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-slate-300">
-                {isFirebaseConfigured ? 'Firebase connected' : 'Offline mode'}
-              </span>
+        <aside
+          className={`border-b border-slate-800 bg-slate-950/95 px-6 py-6 shadow-[0_0_60px_rgba(0,0,0,0.35)] lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto lg:border-b-0 lg:border-r lg:py-8 ${
+            mobileNavOpen
+              ? 'fixed inset-0 z-50 overflow-y-auto bg-slate-950/95 backdrop-blur-xl'
+              : 'hidden'
+          } lg:block lg:static lg:inset-auto lg:overflow-visible`}
+        >
+          <div className="space-y-4 lg:space-y-4">
+            <div className="flex items-center justify-between gap-4 rounded-3xl border border-slate-800 bg-slate-900/90 p-6 shadow-[0_24px_60px_rgba(0,0,0,0.2)]">
+              <div>
+                <p className="text-xs uppercase tracking-[0.24em] text-slate-400">SE-LMS</p>
+                <h1 className="mt-3 text-2xl font-semibold text-white">Learning Workspace</h1>
+              </div>
+              <button
+                type="button"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-700 bg-slate-950/90 text-slate-300 transition hover:bg-slate-800 lg:hidden"
+                onClick={() => setMobileNavOpen(false)}
+                aria-label="Close menu"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 4l12 12" />
+                  <path d="M16 4L4 16" />
+                </svg>
+              </button>
             </div>
 
             <div className="rounded-3xl border border-slate-800 bg-slate-900/80 p-4">
-              <p className="text-sm font-semibold text-slate-300">Navigation</p>
-              <nav className="mt-4 grid gap-2 sm:grid-cols-2 lg:flex lg:flex-col">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-slate-300">Navigation</p>
+                <span className="text-xs uppercase tracking-[0.24em] text-slate-500">Mobile</span>
+              </div>
+              <nav className="mt-4 grid gap-2 lg:grid-cols-1">
                 {navItems.map((item) => (
                   <NavLink
                     key={item.path}
                     to={item.path}
+                    onClick={() => setMobileNavOpen(false)}
                     className={({ isActive }) =>
                       `rounded-2xl px-4 py-3 text-sm transition ${
                         isActive
@@ -89,6 +108,18 @@ export function DashboardLayout() {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <button
+                type="button"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-800 bg-slate-900/90 text-slate-200 shadow-sm transition hover:bg-slate-800 lg:hidden"
+                onClick={() => setMobileNavOpen(true)}
+                aria-label="Open navigation menu"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 7h14" />
+                  <path d="M3 10h14" />
+                  <path d="M3 13h14" />
+                </svg>
+              </button>
               <label className="flex w-full max-w-sm items-center gap-3 rounded-2xl border border-slate-800 bg-slate-900/90 px-4 py-3 text-slate-300 shadow-inner shadow-black/10 focus-within:border-slate-500 sm:w-auto">
                 <span className="text-slate-400">Search</span>
                 <input
@@ -174,11 +205,11 @@ export function DashboardLayout() {
                 <div className="rounded-[32px] border border-slate-800 bg-slate-900/85 p-6 shadow-[0_24px_80px_rgba(0,0,0,0.24)]">
                   <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Status</p>
                   <div className="mt-4 rounded-3xl bg-slate-950/80 p-4 text-sm text-slate-300">
-                    <p className="font-medium text-white">{isFirebaseConfigured ? 'Live data enabled' : 'Live Firebase auth unavailable'}</p>
+                    <p className="font-medium text-white">{isFirebaseConfigured ? 'Live data enabled' : 'Live services unavailable'}</p>
                     <p className="mt-2 text-sm text-slate-400">
                       {isFirebaseConfigured
-                        ? 'Your workspace is connected to Firebase and live platform data is available.'
-                        : 'Firebase is not configured. Provide Firebase environment variables to enable live auth.'}
+                        ? 'Your workspace is connected to platform services and live data is available.'
+                        : 'Live services are not configured. Provide environment variables to enable live features.'}
                     </p>
                   </div>
                 </div>

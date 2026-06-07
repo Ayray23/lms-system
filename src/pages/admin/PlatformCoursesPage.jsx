@@ -1,6 +1,6 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { AdminResourcePage } from './AdminResourcePage'
-import { courseService } from '../../firebase/services'
+import { courseService, userService } from '../../firebase/services'
 
 const columns = [
   { key: 'course', label: 'Course' },
@@ -9,14 +9,15 @@ const columns = [
   { key: 'students', label: 'Enrollment' },
 ]
 
-const fields = [
+const fieldDefaults = [
   { name: 'courseCode', label: 'Course code', placeholder: 'SEN 409' },
   { name: 'courseTitle', label: 'Course title', placeholder: 'Software Project Management' },
-  { name: 'owner', label: 'Assigned lecturer', placeholder: 'Dr. Musa Lecturer' },
   { name: 'students', label: 'Expected enrollment', defaultValue: '0' },
 ]
 
 export function PlatformCoursesPage() {
+  const [lecturerOptions, setLecturerOptions] = useState(['Unassigned'])
+
   const loadCourses = useCallback(async () => {
     const courses = await courseService.listCourses()
     return courses.map((course) => ({
@@ -27,6 +28,40 @@ export function PlatformCoursesPage() {
       students: String(course.students || 0),
     }))
   }, [])
+
+  useEffect(() => {
+    let active = true
+
+    const fetchLecturers = async () => {
+      const users = await userService.listUsers()
+      const lecturers = users.filter((user) => user.role === 'lecturer')
+
+      if (!active) return
+
+      setLecturerOptions([
+        'Unassigned',
+        ...lecturers.map((lecturer) => `${lecturer.name} (${lecturer.email})`),
+      ])
+    }
+
+    fetchLecturers()
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const fields = useMemo(
+    () => [
+      ...fieldDefaults,
+      {
+        name: 'owner',
+        label: 'Assigned lecturer',
+        options: lecturerOptions,
+        defaultValue: 'Unassigned',
+      },
+    ],
+    [lecturerOptions],
+  )
 
   return (
     <AdminResourcePage

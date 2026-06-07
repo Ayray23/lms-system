@@ -109,7 +109,7 @@ export function LoginPage() {
 
             {!isFirebaseConfigured && (
               <div className="mb-5 rounded-3xl border border-rose-400/10 bg-rose-500/10 p-4 text-sm text-rose-100">
-                Firebase configuration is missing. Live auth is unavailable until environment variables are provided.
+                Authentication is not configured. Live authentication is unavailable until required environment variables are provided.
               </div>
             )}
 

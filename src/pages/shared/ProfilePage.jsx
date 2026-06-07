@@ -27,8 +27,8 @@ export function ProfilePage() {
         </div>
         <div className="info-banner spaced">
           {isFirebaseConfigured
-            ? 'Firebase is connected and live auth is active.'
-            : 'Firebase is not configured. Live auth is unavailable.'}
+            ? 'Authentication services are active.'
+            : 'Authentication is not configured. Live authentication is unavailable.'}
         </div>
       </SectionCard>
     </div>
