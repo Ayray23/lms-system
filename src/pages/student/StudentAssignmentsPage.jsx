@@ -24,13 +24,9 @@ export function StudentAssignmentsPage() {
   const { currentUser } = useAuth()
 
   const {
-
     records: assignments,
-
     loading,
-
     error,
-
     refresh,
 
   } = useFirestoreCollection(
@@ -50,59 +46,37 @@ export function StudentAssignmentsPage() {
   const filteredAssignments=useMemo(()=>{
 
       return assignments.filter(item=>{
-
           if(!search)return true
-
           return (
-
               item.title
                   ?.toLowerCase()
                   .includes(search.toLowerCase())
-
               ||
-
               item.courseCode
                   ?.toLowerCase()
                   .includes(search.toLowerCase())
-
           )
-
       })
-
   },[assignments,search])
-
   const openAssignment=(assignment)=>{
-
       setSelectedAssignment(assignment)
-
       setSubmission(defaultSubmission)
-
       setShowModal(true)
-
   }
 
   const handleChange=(event)=>{
 
       const {name,value}=event.target
-
       setSubmission(prev=>({
-
           ...prev,
-
           [name]:value,
-
       }))
-
   }
 
   const handleFile=(event)=>{
-
       setSubmission(prev=>({
-
           ...prev,
-
           file:event.target.files[0],
-
       }))
 
   }  
