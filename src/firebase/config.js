@@ -23,7 +23,8 @@ const requiredConfig = {
   appId: firebaseConfig.appId,
 }
 
-export const isFirebaseConfigured = Object.values(requiredConfig).every(Boolean)
+export const isFirebaseConfigured =
+  Object.values(requiredConfig).every(Boolean)
 
 let servicesPromise = null
 
@@ -35,8 +36,10 @@ export async function getFirebaseServices() {
   if (!servicesPromise) {
     servicesPromise = (async () => {
       const app = initializeApp(firebaseConfig)
+
       const analytics =
-        firebaseConfig.measurementId && (await isSupported())
+        firebaseConfig.measurementId &&
+        (await isSupported())
           ? getAnalytics(app)
           : null
 

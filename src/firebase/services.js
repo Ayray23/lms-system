@@ -13,7 +13,7 @@ import {
   getDownloadURL,
 } from 'firebase/storage'
 
-import { storage } from './config'
+import { getFirebaseServices } from './config'
 
 export const storageService = {
   uploadSubmissionFile: async ({
@@ -33,6 +33,16 @@ export const storageService = {
       throw new Error('Assignment ID is required.')
     }
 
+    const services = await getFirebaseServices()
+
+    if (!services) {
+      throw new Error(
+        'Firebase is not configured.'
+      )
+    }
+
+    const { storage } = services
+
     const safeFileName = file.name.replace(
       /[^a-zA-Z0-9._-]/g,
       '_'
@@ -41,25 +51,33 @@ export const storageService = {
     const filePath =
       `submissions/${studentId}/${assignmentId}/${Date.now()}-${safeFileName}`
 
-    const storageRef = ref(storage, filePath)
+    const storageRef = ref(
+      storage,
+      filePath
+    )
 
     const snapshot = await uploadBytes(
       storageRef,
       file,
       {
-        contentType: file.type || 'application/octet-stream',
+        contentType:
+          file.type ||
+          'application/octet-stream',
       }
     )
 
-    const downloadURL = await getDownloadURL(
-      snapshot.ref
-    )
+    const downloadURL =
+      await getDownloadURL(
+        snapshot.ref
+      )
 
     return {
       fileUrl: downloadURL,
       fileName: file.name,
       filePath,
-      contentType: file.type || 'application/octet-stream',
+      contentType:
+        file.type ||
+        'application/octet-stream',
       size: file.size,
     }
   },

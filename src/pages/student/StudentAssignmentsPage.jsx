@@ -4,6 +4,15 @@ import { SectionCard } from '../../components/SectionCard'
 import { useAuth } from '../../context/AuthContext'
 import { useFirestoreCollection } from '../../hooks/useFirestoreCollection'
 import { assignmentService, submissionService } from '../../firebase/services'
+import {
+  Search,
+  FileText,
+  Paperclip,
+  BookOpen,
+  CircleCheckBig,
+  Clock3,
+  TriangleAlert,
+} from 'lucide-react'
 
 const defaultSubmission = {
   notes: '',
@@ -251,8 +260,8 @@ export function StudentAssignmentsPage() {
 
           <div className="assignment-search">
 
-            <span className="assignment-search-icon">
-              🔎
+            <span>
+              <Search size={18} className="assignment-search-icon" />
             </span>
 
             <input
@@ -277,9 +286,9 @@ export function StudentAssignmentsPage() {
 
           <div className="assignment-empty-state">
 
-            <div className="assignment-empty-icon">
-              📚
-            </div>
+          <div className="assignment-empty-icon">
+              <BookOpen size={48} />
+          </div>
 
             <h3>
               {search
@@ -318,9 +327,9 @@ export function StudentAssignmentsPage() {
 
                   <div className="assignment-card-top">
 
-                    <div className="assignment-file-icon">
-                      📄
-                    </div>
+                  <div className="assignment-file-icon">
+                      <FileText size={22} />
+                  </div>
 
                     <span className={dueStatus.className}>
                       {dueStatus.label}
@@ -545,8 +554,8 @@ export function StudentAssignmentsPage() {
 
               <label className="assignment-upload">
 
-                <span className="assignment-upload-icon">
-                  📎
+                <span>
+                    <Paperclip size={18} className="assignment-upload-icon" />
                 </span>
 
                 <span className="assignment-upload-title">
