@@ -1,122 +1,609 @@
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Modal } from '../../components/Modal'
-import { DataTable } from '../../components/DataTable'
 import { SectionCard } from '../../components/SectionCard'
 import { useAuth } from '../../context/AuthContext'
 import { useFirestoreCollection } from '../../hooks/useFirestoreCollection'
 import { assignmentService, submissionService } from '../../firebase/services'
 
-const columns = [
-  { key: 'title', label: 'Assignment' },
-  { key: 'course', label: 'Course' },
-  { key: 'deadline', label: 'Deadline' },
-  { key: 'status', label: 'Status' },
-]
+const defaultSubmission = {
+  notes: '',
+  file: null,
+}
 
 export function StudentAssignmentsPage() {
+
   const { currentUser } = useAuth()
-  const [showSubmitModal, setShowSubmitModal] = useState(false)
-  const [selectedAssignment, setSelectedAssignment] = useState(null)
-  const [submissionNotes, setSubmissionNotes] = useState('')
-  const [submissionStatus, setSubmissionStatus] = useState('')
 
   const {
+
     records: assignments,
+
     loading,
+
     error,
+
     refresh,
-  } = useFirestoreCollection(assignmentService.listAssignments)
 
-  useEffect(() => {
-    if (!selectedAssignment && assignments.length > 0) {
-      setSelectedAssignment(assignments[0])
-    }
-  }, [assignments, selectedAssignment])
+  } = useFirestoreCollection(
+    assignmentService.listAssignments
+  )
 
-  const openSubmitModal = () => {
-    setSelectedAssignment(assignments[0] || null)
-    setSubmissionNotes('')
-    setSubmissionStatus('')
-    setShowSubmitModal(true)
+  const [search,setSearch]=useState('')
+
+  const [selectedAssignment,setSelectedAssignment]=useState(null)
+
+  const [showModal,setShowModal]=useState(false)
+
+  const [submitting,setSubmitting]=useState(false)
+
+  const [submission,setSubmission]=useState(defaultSubmission)
+
+  const filteredAssignments=useMemo(()=>{
+
+      return assignments.filter(item=>{
+
+          if(!search)return true
+
+          return (
+
+              item.title
+                  ?.toLowerCase()
+                  .includes(search.toLowerCase())
+
+              ||
+
+              item.courseCode
+                  ?.toLowerCase()
+                  .includes(search.toLowerCase())
+
+          )
+
+      })
+
+  },[assignments,search])
+
+  const openAssignment=(assignment)=>{
+
+      setSelectedAssignment(assignment)
+
+      setSubmission(defaultSubmission)
+
+      setShowModal(true)
+
   }
 
+  const handleChange=(event)=>{
+
+      const {name,value}=event.target
+
+      setSubmission(prev=>({
+
+          ...prev,
+
+          [name]:value,
+
+      }))
+
+  }
+
+  const handleFile=(event)=>{
+
+      setSubmission(prev=>({
+
+          ...prev,
+
+          file:event.target.files[0],
+
+      }))
+
+  }  
   const handleSubmit = async () => {
     if (!selectedAssignment || !currentUser) {
-      setSubmissionStatus('Unable to submit assignment at this time.')
       return
     }
 
-    await submissionService.createSubmission({
-      studentId: currentUser.uid,
-      assignmentId: selectedAssignment.id,
-      notes: submissionNotes,
-      status: 'Submitted',
-    })
+    if (!submission.file && !submission.notes.trim()) {
+      alert('Please attach a file or add submission notes.')
+      return
+    }
 
-    setSubmissionStatus(`Assignment "${selectedAssignment.title}" submitted successfully.`)
-    setSubmissionNotes('')
-    await refresh()
+    try {
+      setSubmitting(true)
+
+      await submissionService.createSubmission({
+        assignmentId: selectedAssignment.id,
+        studentId: currentUser.uid,
+        notes: submission.notes.trim(),
+        fileName: submission.file?.name || '',
+        status: 'Submitted',
+        submittedAt: new Date().toISOString(),
+      })
+
+      setShowModal(false)
+      setSelectedAssignment(null)
+      setSubmission(defaultSubmission)
+
+      await refresh()
+
+      alert('Assignment submitted successfully.')
+    } catch (err) {
+      console.error('Assignment submission failed:', err)
+      alert(err.message || 'Unable to submit assignment.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const formatDate = (date) => {
+    if (!date) return 'No deadline'
+
+    const parsedDate = new Date(date)
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return date
+    }
+
+    return parsedDate.toLocaleDateString('en-US', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+  }
+
+  const getDueStatus = (assignment) => {
+    if (!assignment.dueDate) {
+      return {
+        label: 'No deadline',
+        className: 'assignment-status neutral',
+      }
+    }
+
+    const deadline = new Date(assignment.dueDate)
+    const now = new Date()
+
+    if (deadline < now) {
+      return {
+        label: 'Overdue',
+        className: 'assignment-status danger',
+      }
+    }
+
+    if (assignment.status === 'Closed') {
+      return {
+        label: 'Closed',
+        className: 'assignment-status danger',
+      }
+    }
+
+    if (assignment.status === 'Draft') {
+      return {
+        label: 'Draft',
+        className: 'assignment-status warning',
+      }
+    }
+
+    return {
+      label: 'Open',
+      className: 'assignment-status success',
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="page-stack">
+        <SectionCard
+          title="Assignments"
+          description="Your course assignments and submission tasks."
+        >
+          <div className="assignment-empty-state">
+            <div className="assignment-loading-spinner" />
+            <p>Loading assignments...</p>
+          </div>
+        </SectionCard>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="page-stack">
+        <SectionCard
+          title="Assignments"
+          description="Your course assignments and submission tasks."
+        >
+          <div className="assignment-empty-state">
+            <h3>Unable to load assignments</h3>
+            <p>
+              {error.message || 'Something went wrong while loading assignments.'}
+            </p>
+
+            <button
+              className="primary-button small"
+              type="button"
+              onClick={refresh}
+            >
+              Try again
+            </button>
+          </div>
+        </SectionCard>
+      </div>
+    )
   }
 
   return (
     <div className="page-stack">
+
       <SectionCard
         title="Assignments"
-        description="Document tasks, coding submissions, and grading updates."
-        action={
-          <button className="primary-button small" type="button" onClick={openSubmitModal}>
-            Submit assignment
-          </button>
-        }
+        description="View your assignments, read instructions, and submit your work."
       >
-        <DataTable columns={columns} rows={assignments} />
-      </SectionCard>
 
-      <Modal
-        open={showSubmitModal}
-        title="Submit Assignment"
-        onClose={() => setShowSubmitModal(false)}
-        footer={
-          <button className="primary-button" type="button" onClick={handleSubmit}>
-            Upload submission
-          </button>
-        }
-      >
-        <label>
-          <span>Select assignment</span>
-          <select
-            value={selectedAssignment.title}
-            onChange={(event) =>
-              setSelectedAssignment(
-                assignments.find((assignment) => assignment.title === event.target.value) || assignments[0]
-              )
-            }
-          >
-            {assignments.map((assignment) => (
-              <option key={assignment.title} value={assignment.title}>
-                {assignment.title}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="assignment-toolbar">
 
-        <label>
-          <span>Submission notes</span>
-          <textarea
-            className="code-editor"
-            rows={5}
-            value={submissionNotes}
-            onChange={(event) => setSubmissionNotes(event.target.value)}
-            placeholder="Share any notes, file details, or code entry information."
-          />
-        </label>
+          <div className="assignment-search">
 
-        {submissionStatus && (
-          <div className="rounded-3xl bg-emerald-500/10 p-4 text-sm text-emerald-200">
-            {submissionStatus}
+            <span className="assignment-search-icon">
+              🔎
+            </span>
+
+            <input
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search assignments or courses..."
+            />
+
           </div>
+
+          <div className="assignment-count">
+            {filteredAssignments.length}{' '}
+            {filteredAssignments.length === 1
+              ? 'assignment'
+              : 'assignments'}
+          </div>
+
+        </div>
+
+        {filteredAssignments.length === 0 ? (
+
+          <div className="assignment-empty-state">
+
+            <div className="assignment-empty-icon">
+              📚
+            </div>
+
+            <h3>
+              {search
+                ? 'No assignments found'
+                : 'No assignments available'}
+            </h3>
+
+            <p>
+              {search
+                ? 'Try a different assignment or course name.'
+                : 'Your lecturers have not published any assignments yet.'}
+            </p>
+
+          </div>
+
+        ) : (
+
+          <div className="assignment-card-grid">
+
+            {filteredAssignments.map((assignment) => {
+
+              const dueStatus = getDueStatus(assignment)
+
+              const isClosed =
+                assignment.status === 'Closed'
+
+              const isDraft =
+                assignment.status === 'Draft'
+
+              return (
+
+                <article
+                  className="assignment-card"
+                  key={assignment.id}
+                >
+
+                  <div className="assignment-card-top">
+
+                    <div className="assignment-file-icon">
+                      📄
+                    </div>
+
+                    <span className={dueStatus.className}>
+                      {dueStatus.label}
+                    </span>
+
+                  </div>
+
+                  <div className="assignment-card-body">
+
+                    <span className="assignment-course">
+                      {assignment.courseCode || 'Course'}
+                    </span>
+
+                    <h3>
+                      {assignment.title}
+                    </h3>
+
+                    <p className="assignment-description">
+
+                      {assignment.description
+                        ? assignment.description
+                        : 'No description was provided for this assignment.'}
+
+                    </p>
+
+                  </div>
+
+                  <div className="assignment-card-meta">
+
+                    <div className="assignment-meta-item">
+
+                      <span className="assignment-meta-label">
+                        Due date
+                      </span>
+
+                      <strong>
+                        {formatDate(assignment.dueDate)}
+                      </strong>
+
+                    </div>
+
+                    <div className="assignment-meta-item">
+
+                      <span className="assignment-meta-label">
+                        Maximum score
+                      </span>
+
+                      <strong>
+                        {assignment.maxScore || 100}
+                      </strong>
+
+                    </div>
+
+                  </div>
+
+                  <div className="assignment-card-footer">
+
+                    <button
+                      className="primary-button small"
+                      type="button"
+                      disabled={isClosed || isDraft}
+                      onClick={() => openAssignment(assignment)}
+                    >
+                      {isClosed
+                        ? 'Closed'
+                        : isDraft
+                          ? 'Not available'
+                          : 'View assignment'}
+                    </button>
+
+                  </div>
+
+                </article>
+
+              )
+            })}
+
+          </div>
+
         )}
+
+      </SectionCard>
+            <Modal
+        open={showModal}
+        title={selectedAssignment?.title || 'Assignment Details'}
+        onClose={() => {
+          if (submitting) return
+
+          setShowModal(false)
+          setSelectedAssignment(null)
+          setSubmission(defaultSubmission)
+        }}
+        footer={
+          <div className="assignment-modal-actions">
+
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={submitting}
+              onClick={() => {
+                setShowModal(false)
+                setSelectedAssignment(null)
+                setSubmission(defaultSubmission)
+              }}
+            >
+              Cancel
+            </button>
+
+            <button
+              className="primary-button"
+              type="button"
+              disabled={
+                submitting ||
+                !selectedAssignment ||
+                selectedAssignment.status === 'Closed'
+              }
+              onClick={handleSubmit}
+            >
+              {submitting
+                ? 'Submitting...'
+                : 'Submit Assignment'}
+            </button>
+
+          </div>
+        }
+      >
+
+        {selectedAssignment && (
+
+          <div className="assignment-details">
+
+            <div className="assignment-detail-header">
+
+              <div>
+
+                <span className="assignment-course">
+                  {selectedAssignment.courseCode || 'Course'}
+                </span>
+
+                <h3>
+                  {selectedAssignment.title}
+                </h3>
+
+              </div>
+
+              <span
+                className={
+                  getDueStatus(selectedAssignment).className
+                }
+              >
+                {getDueStatus(selectedAssignment).label}
+              </span>
+
+            </div>
+
+            <div className="assignment-detail-grid">
+
+              <div className="assignment-detail-item">
+
+                <span>
+                  Due date
+                </span>
+
+                <strong>
+                  {formatDate(selectedAssignment.dueDate)}
+                </strong>
+
+              </div>
+
+              <div className="assignment-detail-item">
+
+                <span>
+                  Maximum score
+                </span>
+
+                <strong>
+                  {selectedAssignment.maxScore || 100}
+                </strong>
+
+              </div>
+
+            </div>
+
+            <div className="assignment-detail-section">
+
+              <h4>
+                Description
+              </h4>
+
+              <p>
+                {selectedAssignment.description ||
+                  'No description was provided.'}
+              </p>
+
+            </div>
+
+            <div className="assignment-detail-section">
+
+              <h4>
+                Instructions
+              </h4>
+
+              <div className="assignment-instructions">
+
+                {selectedAssignment.instructions ||
+                  'No additional instructions were provided.'}
+
+              </div>
+
+            </div>
+
+            <div className="assignment-submit-section">
+
+              <h4>
+                Submit your work
+              </h4>
+
+              <p>
+                Upload your completed assignment and add
+                any notes your lecturer should see.
+              </p>
+
+              <label className="assignment-upload">
+
+                <span className="assignment-upload-icon">
+                  📎
+                </span>
+
+                <span className="assignment-upload-title">
+                  {submission.file
+                    ? submission.file.name
+                    : 'Choose your assignment file'}
+                </span>
+
+                <span className="assignment-upload-help">
+                  PDF, DOCX, ZIP, source code, images and
+                  other supported files
+                </span>
+
+                <input
+                  type="file"
+                  onChange={handleFile}
+                  disabled={submitting}
+                />
+
+              </label>
+
+              <label>
+
+                <span>
+                  Submission notes
+                </span>
+
+                <textarea
+                  className="code-editor"
+                  rows={5}
+                  name="notes"
+                  value={submission.notes}
+                  onChange={handleChange}
+                  disabled={submitting}
+                  placeholder="Add any notes for your lecturer..."
+                />
+
+              </label>
+
+            </div>
+
+            {!selectedAssignment.allowLateSubmission &&
+              selectedAssignment.dueDate &&
+              new Date(selectedAssignment.dueDate) < new Date() && (
+
+                <div className="assignment-warning">
+
+                  <strong>
+                    This assignment is past its deadline.
+                  </strong>
+
+                  <p>
+                    Late submissions are not enabled for
+                    this assignment.
+                  </p>
+
+                </div>
+
+              )}
+
+          </div>
+
+        )}
+
       </Modal>
+
     </div>
   )
 }
