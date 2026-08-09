@@ -1,135 +1,603 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { DataTable } from '../../components/DataTable'
 import { Modal } from '../../components/Modal'
 import { SectionCard } from '../../components/SectionCard'
-import { lecturerAssignments, lecturerCourses, submissionQueue } from '../../utils/mockData'
+import { useAuth } from '../../context/AuthContext'
+import { useFirestoreCollection } from '../../hooks/useFirestoreCollection'
+import { assignmentService } from '../../firebase/services'
 
-const assignmentColumns = [
+const columns = [
   { key: 'title', label: 'Assignment' },
-  { key: 'course', label: 'Course' },
-  { key: 'deadline', label: 'Deadline' },
-  { key: 'submissions', label: 'Submissions' },
-  { key: 'grading', label: 'Grading' },
+  { key: 'courseCode', label: 'Course' },
+  { key: 'dueDate', label: 'Due Date' },
+  { key: 'maxScore', label: 'Score' },
   { key: 'status', label: 'Status' },
 ]
 
-const submissionColumns = [
-  { key: 'student', label: 'Student' },
-  { key: 'item', label: 'Submission' },
-  { key: 'course', label: 'Course' },
-  { key: 'submitted', label: 'Submitted' },
-  { key: 'score', label: 'Score' },
-]
+const defaultForm = {
+  title: '',
+  description: '',
+  instructions: '',
+  courseId: '',
+  courseCode: '',
+  dueDate: '',
+  maxScore: 100,
+  status: 'Open',
+  allowLateSubmission: false,
+}
 
 export function AssignmentManagementPage() {
-  const [assignments, setAssignments] = useState(lecturerAssignments)
-  const [showAssignmentModal, setShowAssignmentModal] = useState(false)
-  const [form, setForm] = useState({
-    title: '',
-    course: lecturerCourses[0].code,
-    deadline: '',
-    instructions: '',
-  })
 
-  const handleChange = (event) => {
-    const { name, value } = event.target
-    setForm((prev) => ({ ...prev, [name]: value }))
+  const { currentUser } = useAuth()
+
+  const {
+    records: assignments,
+    loading,
+    error,
+    refresh,
+  } = useFirestoreCollection(
+    assignmentService.listAssignments
+  )
+
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('All')
+
+  const [showModal, setShowModal] = useState(false)
+
+  const [saving, setSaving] = useState(false)
+
+  const [editingId, setEditingId] = useState(null)
+
+  const [form, setForm] = useState(defaultForm)
+
+  const stats = useMemo(() => {
+
+    return {
+
+      total: assignments.length,
+
+      open: assignments.filter(a => a.status === 'Open').length,
+
+      closed: assignments.filter(a => a.status === 'Closed').length,
+
+      draft: assignments.filter(a => a.status === 'Draft').length,
+
+    }
+
+  }, [assignments])
+
+  const filteredAssignments = useMemo(() => {
+
+    return assignments.filter(item => {
+
+      const titleMatch =
+        item.title
+          ?.toLowerCase()
+          .includes(search.toLowerCase())
+
+      const courseMatch =
+        item.courseCode
+          ?.toLowerCase()
+          .includes(search.toLowerCase())
+
+      const statusMatch =
+        statusFilter === 'All'
+          ? true
+          : item.status === statusFilter
+
+      return (
+        (titleMatch || courseMatch) &&
+        statusMatch
+      )
+
+    })
+
+  }, [assignments, search, statusFilter])
+
+  const resetForm = () => {
+
+    setEditingId(null)
+
+    setForm(defaultForm)
+
   }
 
-  const handleCreateAssignment = () => {
-    if (!form.title.trim() || !form.deadline) return
+  const openCreateModal = () => {
 
-    setAssignments((prev) => [
-      {
-        title: form.title.trim(),
-        course: form.course,
-        deadline: form.deadline,
-        submissions: '0 / 0',
-        grading: 'Not started',
-        status: 'Draft',
-      },
+    resetForm()
+
+    setShowModal(true)
+
+  }
+
+  const handleChange = (event) => {
+
+    const { name, value, type, checked } = event.target
+
+    setForm(prev => ({
       ...prev,
-    ])
-    setForm((prev) => ({ ...prev, title: '', deadline: '', instructions: '' }))
-    setShowAssignmentModal(false)
+      [name]:
+        type === 'checkbox'
+          ? checked
+          : value,
+    }))
+
+  }
+
+  const handleEdit = assignment => {
+
+    setEditingId(assignment.id)
+
+    setForm({
+
+      title: assignment.title || '',
+
+      description: assignment.description || '',
+
+      instructions: assignment.instructions || '',
+
+      courseId: assignment.courseId || '',
+
+      courseCode: assignment.courseCode || '',
+
+      dueDate: assignment.dueDate || '',
+
+      maxScore: assignment.maxScore || 100,
+
+      status: assignment.status || 'Open',
+
+      allowLateSubmission:
+        assignment.allowLateSubmission || false,
+
+    })
+
+    setShowModal(true)
+
+  }
+
+  const validateForm = () => {
+
+    if (!form.title.trim()) {
+
+      alert('Assignment title is required.')
+
+      return false
+
+    }
+
+    if (!form.courseCode.trim()) {
+
+      alert('Course Code is required.')
+
+      return false
+
+    }
+
+    if (!form.dueDate) {
+
+      alert('Please select a due date.')
+
+      return false
+
+    }
+
+    return true
+
+  }
+
+  const handleSave = async () => {
+
+    if (!validateForm()) return
+
+    try {
+
+      setSaving(true)
+
+      const payload = {
+
+        ...form,
+
+        lecturerId: currentUser.uid,
+
+        updatedAt: new Date().toISOString(),
+
+      }
+
+      if (editingId) {
+
+        await assignmentService.updateAssignment(
+          editingId,
+          payload
+        )
+
+      } else {
+
+        await assignmentService.createAssignment({
+
+          ...payload,
+
+          createdAt: new Date().toISOString(),
+
+        })
+
+      }
+
+      await refresh()
+
+      setShowModal(false)
+
+      resetForm()
+
+    } catch (err) {
+
+      console.error(err)
+
+      alert(err.message)
+
+    } finally {
+
+      setSaving(false)
+
+    }
+
+  }
+    const handleDelete = async (assignment) => {
+
+    const confirmed = window.confirm(
+      `Delete "${assignment.title}"?`
+    )
+
+    if (!confirmed) return
+
+    try {
+
+      await assignmentService.updateAssignment(
+        assignment.id,
+        {
+          status: 'Deleted',
+          deletedAt: new Date().toISOString(),
+        }
+      )
+
+      await refresh()
+
+    } catch (err) {
+
+      console.error(err)
+
+      alert(err.message)
+
+    }
+
+  }
+
+  if (loading) {
+
+    return (
+      <div className="page-stack">
+        <SectionCard title="Assignments">
+          <p>Loading assignments...</p>
+        </SectionCard>
+      </div>
+    )
+
+  }
+
+  if (error) {
+
+    return (
+      <div className="page-stack">
+        <SectionCard title="Assignments">
+          <p>{error.message}</p>
+        </SectionCard>
+      </div>
+    )
+
   }
 
   return (
+
     <div className="page-stack">
-      <SectionCard
-        title="Assignment Studio"
-        description="Create assignments, define instructions, set deadlines, and track grading."
-        action={
-          <button className="primary-button small" type="button" onClick={() => setShowAssignmentModal(true)}>
-            New assignment
-          </button>
-        }
-      >
-        <DataTable columns={assignmentColumns} rows={assignments} />
-      </SectionCard>
 
-      <section className="two-column-grid">
-        <SectionCard title="Submission Review Queue" description="Work waiting for lecturer marks and feedback">
-          <DataTable columns={submissionColumns} rows={submissionQueue} />
-        </SectionCard>
+      <section className="dashboard-grid">
 
-        <SectionCard title="Grading Workflow" description="Professional grading steps before marks are approved">
-          <div className="lecturer-timeline">
-            <span>Open submission</span>
-            <span>Check rubric</span>
-            <span>Add score and feedback</span>
-            <span>Approve marks</span>
-          </div>
-        </SectionCard>
+        <SectionCard
+          title="Total Assignments"
+          description={`${stats.total} Assignments`}
+        />
+
+        <SectionCard
+          title="Open"
+          description={`${stats.open} Active`}
+        />
+
+        <SectionCard
+          title="Draft"
+          description={`${stats.draft} Drafts`}
+        />
+
+        <SectionCard
+          title="Closed"
+          description={`${stats.closed} Closed`}
+        />
+
       </section>
 
-      <Modal
-        open={showAssignmentModal}
-        title="Create Assignment"
-        onClose={() => setShowAssignmentModal(false)}
-        footer={
-          <button className="primary-button" type="button" onClick={handleCreateAssignment}>
-            Save assignment
+      <SectionCard
+        title="Assignment Studio"
+        description="Create and manage course assignments."
+        action={
+
+          <button
+            className="primary-button"
+            onClick={openCreateModal}
+          >
+            New Assignment
           </button>
+
         }
       >
-        <label>
-          <span>Assignment title</span>
+
+        <div
+          style={{
+            display: 'flex',
+            gap: '1rem',
+            marginBottom: '1rem',
+          }}
+        >
+
+          <input
+            placeholder="Search assignment..."
+            value={search}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
+          />
+
+          <select
+            value={statusFilter}
+            onChange={(e) =>
+              setStatusFilter(e.target.value)
+            }
+          >
+
+            <option>All</option>
+
+            <option>Open</option>
+
+            <option>Draft</option>
+
+            <option>Closed</option>
+
+          </select>
+
+        </div>
+
+        <DataTable
+
+          columns={columns}
+
+          rows={filteredAssignments.map(item => ({
+
+            ...item,
+
+            actions: (
+
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '.5rem',
+                }}
+              >
+
+                <button
+                  className="secondary-button small"
+                  onClick={() => handleEdit(item)}
+                >
+                  Edit
+                </button>
+
+                <button
+                  className="danger-button small"
+                  onClick={() => handleDelete(item)}
+                >
+                  Delete
+                </button>
+
+              </div>
+
+            ),
+
+          }))}
+
+        />
+
+      </SectionCard>
+
+      <Modal
+
+        open={showModal}
+
+        title={
+          editingId
+            ? 'Edit Assignment'
+            : 'Create Assignment'
+        }
+
+        onClose={() => {
+
+          setShowModal(false)
+
+          resetForm()
+
+        }}
+
+        footer={
+
+          <button
+            className="primary-button"
+            disabled={saving}
+            onClick={handleSave}
+          >
+
+            {saving
+              ? 'Saving...'
+              : editingId
+                ? 'Update Assignment'
+                : 'Create Assignment'}
+
+          </button>
+
+        }
+
+      >
+                <label>
+          <span>Assignment Title</span>
           <input
             name="title"
             value={form.title}
             onChange={handleChange}
-            placeholder="Design a Use Case Diagram"
+            placeholder="e.g. Design a Use Case Diagram"
           />
         </label>
-        <div className="form-grid">
-          <label>
-            <span>Course</span>
-            <select name="course" value={form.course} onChange={handleChange}>
-              {lecturerCourses.map((course) => (
-                <option key={course.code} value={course.code}>
-                  {course.code} - {course.title}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span>Due date</span>
-            <input name="deadline" type="date" value={form.deadline} onChange={handleChange} />
-          </label>
-        </div>
+
+        <label>
+          <span>Description</span>
+          <textarea
+            rows={3}
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            placeholder="Brief description of the assignment"
+          />
+        </label>
+
         <label>
           <span>Instructions</span>
           <textarea
             className="code-editor"
-            rows={5}
+            rows={6}
             name="instructions"
             value={form.instructions}
             onChange={handleChange}
-            placeholder="Explain the expected deliverables, format, and grading criteria."
+            placeholder="Detailed instructions for students..."
           />
         </label>
+
+        <div className="form-grid">
+
+          <label>
+            <span>Course ID</span>
+
+            <input
+              name="courseId"
+              value={form.courseId}
+              onChange={handleChange}
+              placeholder="CSC401"
+            />
+
+          </label>
+
+          <label>
+            <span>Course Code</span>
+
+            <input
+              name="courseCode"
+              value={form.courseCode}
+              onChange={handleChange}
+              placeholder="Software Engineering"
+            />
+
+          </label>
+
+        </div>
+
+        <div className="form-grid">
+
+          <label>
+
+            <span>Due Date</span>
+
+            <input
+              type="date"
+              name="dueDate"
+              value={form.dueDate}
+              onChange={handleChange}
+            />
+
+          </label>
+
+          <label>
+
+            <span>Maximum Score</span>
+
+            <input
+              type="number"
+              min="1"
+              max="1000"
+              name="maxScore"
+              value={form.maxScore}
+              onChange={handleChange}
+            />
+
+          </label>
+
+        </div>
+
+        <div className="form-grid">
+
+          <label>
+
+            <span>Status</span>
+
+            <select
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+            >
+
+              <option value="Draft">
+                Draft
+              </option>
+
+              <option value="Open">
+                Open
+              </option>
+
+              <option value="Closed">
+                Closed
+              </option>
+
+            </select>
+
+          </label>
+
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '.75rem',
+              marginTop: '1.75rem',
+            }}
+          >
+
+            <input
+              type="checkbox"
+              name="allowLateSubmission"
+              checked={form.allowLateSubmission}
+              onChange={handleChange}
+            />
+
+            Allow Late Submission
+
+          </label>
+
+        </div>
+
       </Modal>
+
     </div>
+
   )
+
 }
