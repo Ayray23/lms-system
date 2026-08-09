@@ -110,14 +110,16 @@ export function StudentAssignmentsPage() {
     try {
       setSubmitting(true)
 
-      await submissionService.createSubmission({
-        assignmentId: selectedAssignment.id,
-        studentId: currentUser.uid,
-        notes: submission.notes.trim(),
-        fileName: submission.file?.name || '',
-        status: 'Submitted',
-        submittedAt: new Date().toISOString(),
-      })
+      await submissionService.submitAssignment({
+            assignmentId: selectedAssignment.id,
+          studentId: currentUser.uid,
+          studentName:
+            currentUser.displayName ||
+            currentUser.email ||
+            'Student',
+          file: submission.file,
+          notes: submission.notes,
+      })  
 
       setShowModal(false)
       setSelectedAssignment(null)
