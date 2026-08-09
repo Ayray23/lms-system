@@ -98,20 +98,20 @@ export function StudentAssignmentsPage() {
 
   }  
   const handleSubmit = async () => {
-    if (!selectedAssignment || !currentUser) {
-      return
-    }
+      if (!selectedAssignment || !currentUser) {
+        return
+      }
 
-    if (!submission.file && !submission.notes.trim()) {
-      alert('Please attach a file or add submission notes.')
-      return
-    }
+      if (!submission.file && !submission.notes.trim()) {
+        alert('Please attach a file or add submission notes.')
+        return
+      }
 
-    try {
-      setSubmitting(true)
+      try {
+        setSubmitting(true)
 
-      await submissionService.submitAssignment({
-            assignmentId: selectedAssignment.id,
+        await submissionService.submitAssignment({
+          assignmentId: selectedAssignment.id,
           studentId: currentUser.uid,
           studentName:
             currentUser.displayName ||
@@ -119,21 +119,28 @@ export function StudentAssignmentsPage() {
             'Student',
           file: submission.file,
           notes: submission.notes,
-      })  
+        })
 
-      setShowModal(false)
-      setSelectedAssignment(null)
-      setSubmission(defaultSubmission)
+        setShowModal(false)
+        setSelectedAssignment(null)
+        setSubmission(defaultSubmission)
 
-      await refresh()
+        await refresh()
 
-      alert('Assignment submitted successfully.')
-    } catch (err) {
-      console.error('Assignment submission failed:', err)
-      alert(err.message || 'Unable to submit assignment.')
-    } finally {
-      setSubmitting(false)
-    }
+        alert('Assignment submitted successfully.')
+      } catch (err) {
+        console.error(
+          'Assignment submission failed:',
+          err
+        )
+
+        alert(
+          err.message ||
+          'Unable to submit assignment.'
+        )
+      } finally {
+        setSubmitting(false)
+      }
   }
 
   const formatDate = (date) => {
