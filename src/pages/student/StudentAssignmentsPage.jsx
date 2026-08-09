@@ -232,11 +232,7 @@ export function StudentAssignmentsPage() {
 
         <div className="assignment-toolbar">
 
-          <div className="assignment-search">
-
-            <span>
-              <Search size={18} className="assignment-search-icon" />
-            </span>
+          <div className="assignment-search flex items-center align-middle">
 
             <input
               type="search"
@@ -244,6 +240,8 @@ export function StudentAssignmentsPage() {
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search assignments or courses..."
             />
+
+            <Search size={22} />
 
           </div>
 
