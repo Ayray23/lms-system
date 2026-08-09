@@ -7,6 +7,63 @@ import {
   makeQueryConstraints,
   updateRecord,
 } from './firestoreRepository'
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from 'firebase/storage'
+
+import { storage } from './config'
+
+export const storageService = {
+  uploadSubmissionFile: async ({
+    file,
+    studentId,
+    assignmentId,
+  }) => {
+    if (!file) {
+      throw new Error('No file selected.')
+    }
+
+    if (!studentId) {
+      throw new Error('Student ID is required.')
+    }
+
+    if (!assignmentId) {
+      throw new Error('Assignment ID is required.')
+    }
+
+    const safeFileName = file.name.replace(
+      /[^a-zA-Z0-9._-]/g,
+      '_'
+    )
+
+    const filePath =
+      `submissions/${studentId}/${assignmentId}/${Date.now()}-${safeFileName}`
+
+    const storageRef = ref(storage, filePath)
+
+    const snapshot = await uploadBytes(
+      storageRef,
+      file,
+      {
+        contentType: file.type || 'application/octet-stream',
+      }
+    )
+
+    const downloadURL = await getDownloadURL(
+      snapshot.ref
+    )
+
+    return {
+      fileUrl: downloadURL,
+      fileName: file.name,
+      filePath,
+      contentType: file.type || 'application/octet-stream',
+      size: file.size,
+    }
+  },
+}
 
 export const userService = {
   createProfile: (profile) => {
