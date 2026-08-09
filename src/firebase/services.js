@@ -134,14 +134,114 @@ export const assignmentService = {
 }
 
 export const submissionService = {
-  createSubmission: (submission) => createRecord(collections.submissions, submission),
-  gradeSubmission: (submissionId, grade) => updateRecord(collections.submissions, submissionId, grade),
-  listAssignmentSubmissions: async (assignmentId) => {
-    const constraints = await makeQueryConstraints((firestore) => [
-      firestore.where('assignmentId', '==', assignmentId),
-    ])
-    return listRecords(collections.submissions, constraints)
+  createSubmission: (submission) =>
+    createRecord(
+      collections.submissions,
+      submission
+    ),
+
+  submitAssignment: async ({
+    assignmentId,
+    studentId,
+    studentName,
+    file,
+    notes = '',
+  }) => {
+    if (!assignmentId) {
+      throw new Error('Assignment ID is required.')
+    }
+
+    if (!studentId) {
+      throw new Error('Student ID is required.')
+    }
+
+    if (!file && !notes.trim()) {
+      throw new Error(
+        'Please attach a file or provide submission notes.'
+      )
+    }
+
+    let uploadedFile = null
+
+    if (file) {
+      uploadedFile =
+        await storageService.uploadSubmissionFile({
+          file,
+          studentId,
+          assignmentId,
+        })
+    }
+
+    const submission = {
+      assignmentId,
+      studentId,
+      studentName: studentName || '',
+
+      fileUrl:
+        uploadedFile?.fileUrl || '',
+
+      fileName:
+        uploadedFile?.fileName || '',
+
+      filePath:
+        uploadedFile?.filePath || '',
+
+      fileType:
+        uploadedFile?.contentType || '',
+
+      fileSize:
+        uploadedFile?.size || 0,
+
+      notes: notes.trim(),
+
+      status: 'Submitted',
+
+      score: null,
+
+      feedback: '',
+
+      submittedAt:
+        new Date().toISOString(),
+    }
+
+    return createRecord(
+      collections.submissions,
+      submission
+    )
   },
+
+  gradeSubmission: (
+    submissionId,
+    grade
+  ) =>
+    updateRecord(
+      collections.submissions,
+      submissionId,
+      {
+        ...grade,
+        gradedAt: new Date().toISOString(),
+      }
+    ),
+
+  listAssignmentSubmissions:
+    async (assignmentId) => {
+
+      const constraints =
+        await makeQueryConstraints(
+          (firestore) => [
+            firestore.where(
+              'assignmentId',
+              '==',
+              assignmentId
+            ),
+          ]
+        )
+
+      return listRecords(
+        collections.submissions,
+        constraints
+      )
+    },
 }
 
 export const announcementService = {
